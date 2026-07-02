@@ -1,0 +1,40 @@
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Compiled JS artifacts in source tree (TS project, keep src/ clean)
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+
+# Dependencies
+node_modules/
+
+# Environmental secrets
+.env
+.env.prod
+.env.local
+
+# Persistent local DB files
+data/
+*.json.bak
+
+# Local agents directory
+.agents/
+AGENTS.md
+
+# IDE & system files
+.DS_Store
+.idea/
+.vscode/
+.kilo
+.kilo/
+.worktrees/
+repomix-*
+review-me*
+*.log
+
+.dev
+.memory-bank

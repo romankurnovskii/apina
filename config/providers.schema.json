@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "API-Aware Provider Configuration",
+  "description": "Schema for provider configuration following Elon Musk's algorithm: Delete, Simplify, Optimize",
+  "type": "object",
+  "required": ["version", "providers"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration format version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "providers": {
+      "type": "array",
+      "description": "List of API providers",
+      "items": {
+        "$ref": "#/definitions/Provider"
+      }
+    }
+  },
+  "definitions": {
+    "Provider": {
+      "type": "object",
+      "description": "API Provider definition - only essential fields are required, everything else is optional and extensible",
+      "required": ["id", "name", "base_url", "schema_path"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the provider (kebab-case)",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable provider name"
+        },
+        "base_url": {
+          "type": "string",
+          "description": "Base URL for API endpoints",
+          "format": "uri"
+        },
+        "schema_path": {
+          "type": "string",
+          "description": "Relative path to OpenAPI schema file"
+        },
+        "version": {
+          "type": "string",
+          "description": "API version (optional)"
+        },
+        "documentation": {
+          "type": "string",
+          "description": "URL to official API documentation (optional)",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the API (optional)"
+        },
+        "authentication": {
+          "type": "object",
+          "description": "Authentication method details (optional)",
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Authentication type",
+              "enum": ["bearer", "basic", "api-key", "oauth2", "aws-signature-v4", "custom"]
+            },
+            "header_name": {
+              "type": "string",
+              "description": "HTTP header name for authentication"
+            },
+            "scheme": {
+              "type": "string",
+              "description": "Authentication scheme (e.g., Bearer, Basic)"
+            }
+          }
+        },
+        "rate_limit": {
+          "type": "object",
+          "description": "Rate limiting information (optional - only include if known and relevant)",
+          "properties": {
+            "requests": {
+              "type": "integer",
+              "description": "Number of requests allowed"
+            },
+            "period": {
+              "type": "string",
+              "description": "Time period (second, minute, hour, day)"
+            }
+          }
+        },
+        "common_headers": {
+          "type": "object",
+          "description": "Default headers to include in requests (optional)",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "metadata": {
+          "type": "array",
+          "description": "Extensible metadata as key-value pairs (optional) - use for any provider-specific info",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Metadata key (category, tier, status, etc.)"
+              },
+              "value": {
+                "description": "Metadata value (any type)",
+                "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }, { "type": "object" }, { "type": "array" }]
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

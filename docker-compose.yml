@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api-aware:
+    build: ./service
+    ports:
+      - '8081:8000'
+    volumes:
+      - ./schemas:/app/schemas:ro
+      - ./config:/app/config:ro
+    environment:
+      - SCHEMAS_DIR=/app/schemas
+      - CONFIG_DIR=/app/config
+    restart: unless-stopped

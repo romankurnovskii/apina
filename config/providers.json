@@ -1,0 +1,20 @@
+{
+  "$schema": "./providers.schema.json",
+  "version": "1.0.0",
+  "providers": [
+    {
+      "id": "dexscreener",
+      "name": "DEX Screener API",
+      "base_url": "https://api.dexscreener.com",
+      "schema_path": "dexscreener/openapi.json",
+      "version": "1.0.0",
+      "documentation": "https://docs.dexscreener.com/api/reference",
+      "description": "DEX Screener API for latest token profiles, pairs, and market data",
+      "rate_limit": {
+        "requests": 60,
+        "period": "minute"
+      },
+      "metadata": [{ "key": "category", "value": "crypto" }]
+    }
+  ]
+}
