@@ -35,6 +35,8 @@ AGENTS.md
 repomix-*
 review-me*
 *.log
+__pycache__
+*.pyc
 
 .dev
 .memory-bank

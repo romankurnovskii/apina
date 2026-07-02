@@ -1,11 +1,13 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
 
+
 class Parameter(BaseModel):
     name: str
     type: str
     required: bool
     description: Optional[str] = None
+
 
 class EndpointSchema(BaseModel):
     id: str

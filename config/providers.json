@@ -15,6 +15,16 @@
         "period": "minute"
       },
       "metadata": [{ "key": "category", "value": "crypto" }]
+    },
+    {
+      "id": "meteora",
+      "name": "Meteora DLMM API",
+      "base_url": "https://dlmm.datapi.meteora.ag",
+      "schema_path": "meteora/openapi.json",
+      "version": "0.1.0",
+      "documentation": "https://docs.meteora.ag",
+      "description": "Meteora DLMM API for Dynamic Liquidity Market Maker pools and analytics",
+      "metadata": [{ "key": "category", "value": "crypto" }]
     }
   ]
 }

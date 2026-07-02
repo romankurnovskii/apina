@@ -8,7 +8,6 @@ app = FastAPI(
     version=settings.app_version,
 )
 
-# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -17,12 +16,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Routers
 app.include_router(providers_router, prefix="/api/v1/providers", tags=["Providers"])
+
 
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "version": settings.app_version}
+
 
 @app.get("/")
 def root():

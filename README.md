@@ -6,7 +6,7 @@ Apina provides a centralized REST API and a Model Context Protocol (MCP) server 
 
 ## Philosophy
 
-The goal is simple: instead of teaching every agent about every new endpoint, you register the APIs here. Apina exposes them in a unified way. 
+The goal is simple: instead of teaching every agent about every new endpoint, you register the APIs here. Apina exposes them in a unified way.
 
 - **REST API**: Programmatically get a list of registered endpoints, their paths, and schemas.
 - **MCP Server**: Provide your AI agents with a dynamic tool to search for APIs. An agent can ask, "Is there an endpoint on DEX Screener?" or "How do I check a Solana balance?", and the MCP server will guide it to the correct schema.

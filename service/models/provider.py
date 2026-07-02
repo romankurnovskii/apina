@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Any
 
+
 class Provider(BaseModel):
     id: str
     name: str
