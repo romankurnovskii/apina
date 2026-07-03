@@ -14,7 +14,12 @@
         "requests": 60,
         "period": "minute"
       },
-      "metadata": [{ "key": "category", "value": "crypto" }]
+      "metadata": [
+        {
+          "key": "category",
+          "value": "crypto"
+        }
+      ]
     },
     {
       "id": "meteora",
@@ -24,7 +29,31 @@
       "version": "0.1.0",
       "documentation": "https://docs.meteora.ag",
       "description": "Meteora DLMM API for Dynamic Liquidity Market Maker pools and analytics",
-      "metadata": [{ "key": "category", "value": "crypto" }]
+      "metadata": [
+        {
+          "key": "category",
+          "value": "crypto"
+        }
+      ]
+    },
+    {
+      "id": "defillama",
+      "name": "DefiLlama API",
+      "base_url": "https://api.llama.fi",
+      "schema_path": "defillama/openapi.json",
+      "version": "1.0.0",
+      "documentation": "https://api-docs.defillama.com/",
+      "description": "DefiLlama Free API for DeFi analytics — TVL, token prices, stablecoins, yields, DEX volumes, and fees data",
+      "rate_limit": {
+        "requests": 300,
+        "period": "minute"
+      },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "crypto"
+        }
+      ]
     }
   ]
 }
