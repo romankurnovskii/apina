@@ -1,3 +1,17 @@
+"""
+provider_registry.py
+
+Maintains the in-memory registry of providers loaded from the configuration store.
+
+Features:
+    - Syncs provider configuration and schemas from GitHub when available.
+    - Loads providers from the local configuration file as a fallback.
+    - Exposes provider lookup helpers for the REST and MCP layers.
+
+Dependencies: requests, pydantic
+Side Effects: Reads and writes local provider configuration and schema files.
+"""
+
 import json
 import logging
 import os
@@ -11,7 +25,15 @@ logger = logging.getLogger("apina.registry")
 
 
 class ProviderRegistry:
+    """Loads and serves provider metadata for the Apina service."""
+
     def __init__(self, config_dir: Path, schemas_dir: Path):
+        """Initialize the registry and bootstrap provider data.
+
+        Args:
+            config_dir: Directory that contains providers.json.
+            schemas_dir: Directory that stores OpenAPI schemas.
+        """
         self.config_dir = config_dir
         self.schemas_dir = schemas_dir
         self.providers: Dict[str, Provider] = {}
@@ -19,6 +41,7 @@ class ProviderRegistry:
         self.load_providers()
 
     def sync_from_github(self):
+        """Attempt to refresh provider definitions from the public GitHub repository."""
         github_repo = "romankurnovskii/apina"
         github_branch = "main"
         raw_url_base = (
@@ -79,6 +102,7 @@ class ProviderRegistry:
             )
 
     def load_providers(self):
+        """Load provider definitions from the local providers.json file."""
         providers_file = self.config_dir / "providers.json"
         if not providers_file.exists():
             return
@@ -89,9 +113,22 @@ class ProviderRegistry:
                 self.providers[provider.id] = provider
 
     def get_all(self) -> List[Provider]:
+        """Return every registered provider.
+
+        Returns:
+            list[Provider]: A list of provider models currently loaded in memory.
+        """
         return list(self.providers.values())
 
     def get_by_id(self, provider_id: str) -> Optional[Provider]:
+        """Return a provider by identifier if it exists.
+
+        Args:
+            provider_id: The provider identifier to look up.
+
+        Returns:
+            Provider | None: The matching provider, or None when absent.
+        """
         return self.providers.get(provider_id)
 
 

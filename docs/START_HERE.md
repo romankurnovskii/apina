@@ -5,6 +5,7 @@ Welcome to the Apina documentation hub. This index serves as the entry point for
 ## Architecture & Design
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Detailed review of how Apina registers and exposes API schemas.
+- [PROJECT_AUDIT_REPORT.md](PROJECT_AUDIT_REPORT.md) — Audit findings and recommendations for the current repository state.
 - [../DESIGN-PHILOSOPHY.md](../DESIGN-PHILOSOPHY.md) — Brief notes on the core ideas behind Apina.
 
 ## User Guides

@@ -11,6 +11,7 @@ packages/*/src/**/*.d.ts.map
 
 # Dependencies
 node_modules/
+__pycache__/
 
 # Environmental secrets
 .env

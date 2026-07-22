@@ -1,3 +1,21 @@
+"""
+mcp_server.py
+
+Apina MCP server entry point - exposes search tools for registered API schemas.
+
+Entry Point: Yes
+Service: Apina MCP Server
+Port: stdio
+
+Features:
+    - Exposes a FastMCP tool for searching provider endpoints.
+    - Searches provider schemas by path, summary, description, and tags.
+    - Returns structured matches for agent-driven discovery.
+
+Dependencies: mcp.server.fastmcp, fastapi
+Side Effects: Starts a stdio-based MCP server for agent clients.
+"""
+
 import sys
 import os
 
@@ -19,12 +37,14 @@ mcp = FastMCP(
 
 @mcp.tool()
 def search_api(query: str, provider_id: Optional[str] = None) -> str:
-    """
-    Search for API endpoints across registered providers.
+    """Search for API endpoints across registered providers.
 
     Args:
-        query: Search term for endpoint paths, summaries, or descriptions (e.g., 'solana balance', 'dexscreener').
+        query: Search term for endpoint paths, summaries, or descriptions.
         provider_id: Optional specific provider to search within.
+
+    Returns:
+        str: A newline-delimited list of matching endpoints and metadata.
     """
     results = []
 

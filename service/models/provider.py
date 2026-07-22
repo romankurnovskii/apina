@@ -1,8 +1,22 @@
+"""
+provider.py
+
+Defines the Pydantic model for provider metadata stored in the Apina registry.
+
+Features:
+    - Encodes provider identity, schema location, and documentation metadata.
+    - Supports authentication, headers, and rate-limit configuration.
+
+Dependencies: pydantic
+"""
+
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Any
 
 
 class Provider(BaseModel):
+    """Structured metadata for a single registered API provider."""
+
     id: str
     name: str
     version: Optional[str] = None

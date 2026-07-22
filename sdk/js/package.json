@@ -1,0 +1,25 @@
+{
+  "name": "apina-sdk",
+  "version": "1.0.0",
+  "description": "Unified dynamic client SDK for the Apina API registry",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node example.js"
+  },
+  "keywords": [
+    "apina",
+    "openapi",
+    "sdk",
+    "web3",
+    "agent"
+  ],
+  "author": "Roman Kurnovskii",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
