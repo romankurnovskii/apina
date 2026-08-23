@@ -43,7 +43,7 @@
       "schema_path": "defillama/openapi.json",
       "version": "1.0.0",
       "documentation": "https://api-docs.defillama.com/",
-      "description": "DefiLlama Free API for DeFi analytics — TVL, token prices, stablecoins, yields, DEX volumes, and fees data",
+      "description": "DefiLlama Free API for DeFi analytics \u2014 TVL, token prices, stablecoins, yields, DEX volumes, and fees data",
       "rate_limit": {
         "requests": 300,
         "period": "minute"
