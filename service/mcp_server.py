@@ -8,29 +8,30 @@ Service: Apina MCP Server
 Port: stdio
 
 Features:
-    - Exposes a FastMCP tool for searching provider endpoints.
+    - Exposes an MCP tool for searching provider endpoints.
     - Searches provider schemas by path, summary, description, and tags.
     - Returns structured matches for agent-driven discovery.
 
-Dependencies: mcp.server.fastmcp, fastapi
+Dependencies: mcp.server, fastapi
 Side Effects: Starts a stdio-based MCP server for agent clients.
 """
 
-import sys
 import os
+import sys
 
 # Add parent dir to path so we can import core and utils
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mcp.server.fastmcp import FastMCP
 from typing import Optional
 
-from core.provider_registry import provider_registry
+from mcp.server import MCPServer
+
 from core.config import settings
+from core.provider_registry import provider_registry
 from utils.openapi_parser import OpenAPIParser
 
-# Initialize FastMCP server
-mcp = FastMCP(
+# Initialize MCP server
+mcp = MCPServer(
     "apina-server", description="Apina MCP Server - find API schemas and endpoints"
 )
 

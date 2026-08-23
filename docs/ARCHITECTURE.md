@@ -16,7 +16,7 @@ graph TD
 
     subgraph Interface
         FA[FastAPI REST Server]
-        MC[FastMCP stdio Server]
+        MC[MCP stdio Server]
     end
 
     P --> PR
@@ -40,4 +40,4 @@ graph TD
 ## Exposure Layers
 
 - **REST Engine**: FastAPI serves JSON endpoints returning formatted provider structures and parsing endpoint schemas dynamically.
-- **MCP Server**: FastMCP exposes `search_api` to search endpoints and their full definitions using keyword parameters.
+- **MCP Server**: MCPServer exposes `search_api` to search endpoints and their full definitions using keyword parameters.
