@@ -1,0 +1,1853 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Crossref Agency Works API",
+    "description": "The Crossref REST API is one of a variety of tools and APIs that allow anybody to search and reuse our members' metadata in sophisticated ways.",
+    "contact": {
+      "name": "Crossref",
+      "url": "https://crossref.org",
+      "email": "support@crossref.org"
+    },
+    "version": "3.32.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Works",
+      "description": "Endpoints that expose works related data"
+    }
+  ],
+  "paths": {
+    "/members/{id}/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns list of works associated with a Crossref member (deposited by a Crossref member) with {id}.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/prefixes/{prefix}/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns list of works associated with specified {prefix}.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prefix",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/funders/{id}/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns list of works associated with the specified {id}.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id of the funder",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/works/{doi}": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns metadata for the specified Crossref DOI, as an example use DOI 10.5555/12345678",
+        "parameters": [
+          {
+            "name": "doi",
+            "in": "path",
+            "description": "The DOI identifier associated with the work",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The work identified by {doi}.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The work identified by {doi} does not exist.",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/types/{id}/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "returns list of works of type {id}.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns a list of all works (journal articles, conference proceedings, books, components, etc), 20 per page.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/works/{doi}/agency": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Gets the agency associated with a specific work by its DOI, as an example use DOI 10.5555/12345678",
+        "parameters": [
+          {
+            "name": "doi",
+            "in": "path",
+            "description": "The DOI identifier associated with the work",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The agency associated with work identified by {doi}.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgencyMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The work identified by {doi} does not exist.",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/journals/{issn}/works": {
+      "get": {
+        "tags": ["Works"],
+        "description": "Returns a list of works in the journal identified by {issn}.\n## Queries\n\nFree form search queries can be made, for example, works that include `renear` or `ontologies` (or both):\n\n##\n\n```\n/works?query=renear+ontologies\n```\n\n\n## Field Queries\nField queries allow for queries that match only particular fields of metadata. For example, this query matches records that contain the tokens `richard` or `feynman` (or both) in any author field:\n\n##\n\n```\n/works?query.author=richard+feynman\n```\n\n##\n\nField queries can be combined with the general `query` parameter and each other. Each query parameter is ANDed with the others:\n\n##\n```\n/works?query.title=room+at+the+bottom&query.author=richard+feynman\n```\n\n##\n\nThis endpoint supports the following field queries:\n\n##\n\n+ `query.affiliation` - query contributor affiliations\n+ `query.author` - query author given and family names\n+ `query.bibliographic` - query bibliographic information, useful for citation look up, includes titles, authors, ISSNs and publication years\n+ `query.chair` - query chair given and family names\n+ `query.container-title` - query\u00a0container title\u00a0aka. publication name\n+ `query.contributor` - query author, editor, chair and translator given and family names\n+ `query.degree` - query degree\n+ `query.description` - query description\n+ `query.editor` - query editor given and family names\n+ `query.event-acronym` - query acronym of the event\n+ `query.event-location` - query location of the event\n+ `query.event-name` - query name of the event\n+ `query.event-sponsor` - query sponsor of the event\n+ `query.event-theme` - query theme of the event\n+ `query.funder-name` - query name of the funder\n+ `query.publisher-location` - query location of the publisher\n+ `query.publisher-name` - query publisher name\n+ `query.standards-body-acronym` - query acronym of the standards body\n+ `query.standards-body-name` - query standards body name\n+ `query.title` - query title\n+ `query.translator` - query translator given and family names\n## Sort\n\nResults can be sorted by applying the `sort` and `order` parameters. `sort` sets the field by which results will be sorted. `order` sets the result ordering, either `asc` or `desc` (default is `desc`).\n\nAn example that sorts results in order of publication, beginning with the least recent:\n\n##\n\n```\n/works?query=josiah+carberry&sort=published&order=asc\n```\n\n##\n\nThis endpoint supports sorting by the following elements:\n\n##\n\n+ `created` - sort by created date\n+ `deposited` - sort by time of most recent deposit\n+ `indexed` - sort by time of most recent index\n+ `is-referenced-by-count` - sort by number of times this DOI is referenced by other Crossref DOIs\n+ `issued` - sort by issued date (earliest known publication date)\n+ `published` - sort by publication date\n+ `published-online` - sort by online publication date\n+ `published-print` - sort by print publication date\n+ `references-count` - sort by number of references included in the references section of the document identified by this DOI\n+ `relevance` - sort by relevance score\n+ `score` - sort by relevance score\n+ `updated` - sort by date of most recent change to metadata, currently the same as\u00a0deposited\n## Facets\n\nSummary statistics counts can be retrieved by enabling faceting. Facets are enabled by providing a facet field name along with a maximum number of returned term values. The larger the number of returned values, the longer the query will take. Some facet fields can accept a `*` as their maximum, which indicates that all values should be returned.\n\nNote that facet counts use approximation based on assumptions about the data. Some facets count the number of relationships and double-count a record with the same relationship two or more times (e.g. a record with two published Corrections). They may therefore differ from exact counts obtained using filters.\n\n##\n\nFor example, to get facet counts for all work types:\n\n##\n```\n/works?facet=type-name:*\n```\n\n##\n\nThis endpoint supports the following facets:\n\n##\n\n+ `affiliation` - author affiliation\n+ `archive` - archive location\n+ `assertion` - custom Crossmark assertion name\n+ `assertion-group` - custom Crossmark assertion group name\n+ `category-name` - category name of work\n+ `container-title` - [max value 100], work container title, such as journal title, or book title\n+ `funder-doi` - funder DOI\n+ `funder-name` - funder literal name as deposited alongside DOI\n+ `issn` - [max value 100], journal ISSN (any - print, electronic, link)\n+ `journal-issue` - journal issue number\n+ `journal-volume` - journal volume\n+ `license` - license URI of work\n+ `link-application` - intended application of the full text link\n+ `orcid` - [max value 100], contributor ORCID\n+ `published` - earliest year of publication\n+ `publisher-name` - publisher name of work\n+ `relation-type` - relation type described by work or described by another work with work as object\n+ `ror-id` - institution ROR ID\n+ `source` - source of the DOI\n+ `type-name` - work type name, such as\u00a0journal-article\u00a0or\u00a0book-chapter\n+ `update-type` - significant update type\n## Filters\n\nFilters allow you to select items based on specific criteria. All filter results are lists.\n\n##\n\nFor example:\n\n##\n```\n/works?filter=type:dataset\n```\n\n### Multiple filters\n\nMultiple filters can be specified in a single query. In such a case, different filters will be applied with AND semantics, while specifying the same filter multiple times will result in OR semantics - that is, specifying the filters:\n\n- `is-update:true`\n- `from-pub-date:2014-03-03`\n- `funder:10.13039/100000001`\n- `funder:10.13039/100000050`\n\nwould locate documents that are updates, were published on or after 3rd March 2014 and were funded by either the National Science Foundation (`10.13039/100000001`) or the National Heart, Lung, and Blood Institute (`10.13039/100000050`). These filters would be specified by joining each filter together with a comma:\n\n##\n```\n/works?filter=is-update:true,from-pub-date:2014-03-03,funder:10.13039/100000001,funder:10.13039/100000050\n```\n\n### Dot filters\n\nA filter with a dot in its name is special. The dot signifies that the filter will be applied to some other record type that is related to primary resource record type. For example, with work queries, one can filter on works that have an award, where the same award has a particular award number and award-giving funding agency:\n\n##\n```\n/works?filter=award.number:CBET-0756451,award.funder:10.13039/100000001\n```\n##\n\nHere we filter on works that have an award by the National Science Foundation that also has the award number `CBET-0756451`.\n\n### Note on dates\n\nThe dates in filters should always be of the form YYYY-MM-DD, YYYY-MM or YYYY. The date filters are inclusive. For example:\n\n* `from-pub-date:2018-09-18` filters works published on or after 18th September 2018\n* `from-created-date:2016-02-29,until-created-date:2016-02-29` filters works first deposited on 29th February 2016\n* `until-created-date:2010-06` filters works first deposited in or before June 2010\n* `from-update-date:2017,until-update-date:2017` filters works with metadata updated in 2017\n\nAlso note that date information in Crossref metadata can often be incomplete. So, for example, a publisher may only include the year and month of publication for a journal article. For a monograph they might just include the year. In these cases the API selects the earliest possible date given the information provided. So, for instance, if the publisher only provided 2013-02 as the published date, then the date would be treated as 2013-02-01. Similarly, if the publisher only provided the year 2013 as the date, it would be treated at 2013-01-01.\n\n### Note on owner prefixes\n\nThe prefix of a Crossref DOI does **NOT** indicate who currently owns the DOI. It only reflects who originally registered the DOI. Crossref metadata has an **prefix** element that records the current owner of the Crossref DOI in question.\n\n##\n\nCrossref also has member IDs for depositing organisations. A single member may control multiple owner prefixes, which in turn may control a number of DOIs. When looking at works published by a certain organisaton, member IDs and the member routes should be used.\n\n### Notes on incremental metadata updates\n\nWhen using time filters to retrieve periodic, incremental metadata updates, the `from-index-date` filter should be used over `from-update-date`, `from-deposit-date`, `from-created-date` and `from-pub-date`. The timestamp that `from-index-date` filters on is guaranteed to be updated every time there is a change to metadata requiring a reindex.\n\n##\n\nThis endpoint supports the following filters:\n\n##\n\n+ `alternative-id` - metadata for records with the given alternative ID, which may be a publisher-specific ID, or any other identifier a publisher may have provided\n+ `archive` - metadata where value of archive partner equals given archive name\n+ `article-number` - metadata for records with a given article number\n+ `assertion` - metadata for records with a given named assertion\n+ `assertion-group` - metadata for records with an assertion in a given group\n+ `award`\n  + `award.funder` - metadata for records with award funder equal to given funder, optionally combine with\u00a0`award.number`\n  + `award.number` - metadata for records with award number equal to given number, optionally combine with\u00a0`award.funder`\n+ `category-name` - metadata for records with category label equal to given name, category labels come from\u00a0the list\u00a0published by Scopus\n+ `citation-id`\n+ `clinical-trial-number` - metadata for records with given clinical trial number\n+ `container-title` - metadata with a publication title that exactly equals given title\n+ `content-domain` - metadata where the publisher records a given domain name as the location Crossmark content will appear\n+ `doi` - metadata describing given DOI\n+ `from-accepted-date` - [date], metadata where accepted date is since given date (inclusive)\n+ `from-approved-date` - [date], metadata where approved date is since given date (inclusive)\n+ `from-awarded-date` - [date], metadata where award date is since given date (inclusive)\n+ `from-created-date` - [date], metadata first deposited since given date (inclusive)\n+ `from-deposit-date` - [date], metadata last (re)deposited since given date (inclusive)\n+ `from-event-end-date` - [date], metadata where event end date is since given date (inclusive)\n+ `from-event-start-date` - [date], metadata where event start date is since given date  (inclusive)\n+ `from-index-date` - [date], metadata indexed since given date (inclusive)\n+ `from-issued-date` - [date], metadata where issued date is since given date  (inclusive)\n+ `from-online-pub-date` - [date], metadata where online published date is since given date (inclusive)\n+ `from-posted-date` - [date], metadata where posted date is since given date (inclusive)\n+ `from-print-pub-date` - [date], metadata where print published date is since given date (inclusive)\n+ `from-pub-date` - [date], metadata where published date is since given date (inclusive)\n+ `from-update-date` - [date], metadata updated since given date (inclusive), currently the same as\u00a0`from-deposit-date`\n+ `full-text`\n  + `full-text.type` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_type`\u00a0attribute equals given version\u00a0mime type\u00a0(e.g.\u00a0application/pdf)\n  + `full-text.application` - [text-mining,\u00a0similarity-checking\u00a0or\u00a0unspecified], metadata where\u00a0`resource` link has given application\n  + `full-text.version` - metadata where\u00a0`resource`\u00a0element's\u00a0`content_version`\u00a0attribute equals given version\n+ `funder` - metadata which include given funder id\u00a0in FundRef data\n+ `funder-doi-asserted-by` - metadata where funder DOI was asserted by given body\n+ `group-title` - metadata with given group title\n+ `gte-award-amount` - metadata where award is greater than or equals given number\n+ `has-abstract` - [0 or 1], metadata for records with/without an abstract\n+ `has-affiliation` - [0 or 1], metadata for records with/without affiliation information\n+ `has-archive` - [0 or 1], metadata which includes/does not include name of archive partner\n+ `has-assertion` - [0 or 1], metadata for records with/without assertions\n+ `has-authenticated-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs where the depositing publisher claims to have witness the ORCID owner authenticate with ORCID\n+ `has-award` - [0 or 1], metadata for records with/without award\n+ `has-clinical-trial-number` - [0 or 1], metadata for records with/without a clinical trial number\n+ `has-content-domain` - [0 or 1], metadata where the publisher records/does not record a domain name location for Crossmark content\n+ `has-description`\n+ `has-domain-restriction` - [0 or 1], metadata where the publisher restricts/does not restrict Crossmark usage to content domains\n+ `has-event` - [0 or 1], metadata for records with/without event\n+ `has-full-text` - [0 or 1], metadata that includes/does not include any full text\u00a0`resource`\u00a0elements\n+ `has-funder` - [0 or 1], metadata which includes/does not include one or more funder entry\n+ `has-funder-doi` - [0 or 1], metadata for records with/without funder DOI\n+ `has-license` - [0 or 1], metadata that includes/does not include any\u00a0`license_ref`\u00a0elements\n+ `has-orcid` - [0 or 1], metadata which includes/does not include one or more ORCIDs\n+ `has-references` - [0 or 1], metadata for works that have/don't have a list of references\n+ `has-relation` - [0 or 1], metadata for records that either assert/do not assert or are/are not the object of a relation\n+ `has-ror-id` - [0 or 1], metadata for records with/without ROR ID\n+ `has-update` - [0 or 1], metadata for records with/without update information\n+ `has-update-policy` - [0 or 1], metadata for records that include/do not include a link to an editorial update policy\n+ `is-update` - [0 or 1], metadata for records that represent/do not represent editorial updates\n+ `isbn` - metadata with given ISBN\n+ `issn` - metadata with given ISSN, format is\u00a0xxxx-xxxx\n+ `license`\n  + `license.url` - metadata where\u00a0`license_ref`\u00a0value equals\u00a0given url\n  + `license.version` - metadata where the\u00a0`license_ref`'s\u00a0`applies_to`\u00a0attribute equals given version\n  + `license.delay` - metadata where difference between publication date and the\u00a0`license_ref`'s\u00a0`start_date`\u00a0attribute is <=\u00a0than given delay\u00a0(in days)\n+ `lte-award-amount` - metadata where award is less than or equals given number\n+ `member` - metadata belonging to a given Crossref member\n+ `orcid` - metadata where\u00a0there is a contributor with given ORCID\n+ `prefix` - metadata belonging to a given DOI owner prefix\u00a0(e.g.\u00a010.1016)\n+ `relation`\n  + `relation.type` - metadata for records with a relation with the given type from the Crossref relations schema (e.g.\u00a0is-referenced-by,\u00a0is-parent-of,\u00a0is-preprint-of)\n  + `relation.object-type` - metadata for records with a relation, where the object type matches given type from the Crossref relations schema (e.g.\u00a0doi,\u00a0issn)\n  + `relation.object` - metadata for records with a relation, where the object identifier matches given identifier\n+ `ror-id` - metadata with given ROR ID\n+ `type` - metadata records whose type equals given type, type must be an ID value from the list of types returned by the\u00a0/types\u00a0resource\n+ `type-name` - metadata for records with type name equal to given name\n+ `until-accepted-date` - [date], metadata where accepted date is before given date (inclusive)\n+ `until-approved-date` - [date], metadata where approved date is before given date (inclusive)\n+ `until-awarded-date` - [date], metadata where award date is before given date (inclusive)\n+ `until-created-date` - [date], metadata first deposited before given date (inclusive)\n+ `until-deposit-date` - [date], metadata last (re)deposited before given date (inclusive)\n+ `until-event-end-date` - [date], metadata where event end date is before given date (inclusive)\n+ `until-event-start-date` - [date], metadata where event start date is before given date  (inclusive)\n+ `until-index-date` - [date], metadata indexed before given date (inclusive)\n+ `until-issued-date` - [date], metadata where issued date is before given date  (inclusive)\n+ `until-online-pub-date` - [date], metadata where online published date is before given date (inclusive)\n+ `until-posted-date` - [date], metadata where posted date is before given date (inclusive)\n+ `until-print-pub-date` - [date], metadata where print published date is before given date (inclusive)\n+ `until-pub-date` - [date], metadata where published date is before given date (inclusive)\n+ `until-update-date` - [date], metadata updated before given date (inclusive), currently the same as\u00a0`until-deposit-date`\n+ `update-type` - metadata with given update type\n+ `updates` - metadata for records that represent editorial updates to given DOI\n## Elements\n\nCrossref metadata records can be quite large. Sometimes you just want a few elements from the schema. You can \\\"select\\\" a subset of elements to return using the `select` parameter. This can make your API calls much more efficient. For example:\n\n##\n```\n/works?select=DOI,prefix,title\n```\n\n##\n\nThis endpoint supports selecting the following elements.\n\n##\n\n+ `DOI`\n+ `ISBN`\n+ `ISSN`\n+ `URL`\n+ `abstract`\n+ `accepted`\n+ `alternative-id`\n+ `approved`\n+ `archive`\n+ `article-number`\n+ `assertion`\n+ `author`\n+ `chair`\n+ `clinical-trial-number`\n+ `container-title`\n+ `content-created`\n+ `content-domain`\n+ `created`\n+ `degree`\n+ `deposited`\n+ `editor`\n+ `event`\n+ `funder`\n+ `group-title`\n+ `indexed`\n+ `is-referenced-by-count`\n+ `issn-type`\n+ `issue`\n+ `issued`\n+ `license`\n+ `link`\n+ `member`\n+ `original-title`\n+ `page`\n+ `posted`\n+ `prefix`\n+ `published`\n+ `published-online`\n+ `published-print`\n+ `publisher`\n+ `publisher-location`\n+ `reference`\n+ `references-count`\n+ `relation`\n+ `score`\n+ `short-container-title`\n+ `short-title`\n+ `standards-body`\n+ `subject`\n+ `subtitle`\n+ `title`\n+ `translator`\n+ `type`\n+ `update-policy`\n+ `update-to`\n+ `updated-by`\n+ `volume`\n## Pagination with offsets\n\nOffsets are an easy way to iterate over results sets up to 10,000 items. This limit applies to the sum of values of parameters `offset` + `rows`.\n\n##\n\nThe number of items returned in a single response is controlled by `rows` parameter (default is 20, and maximum is 1,000). To limit results to 5, for example, you could do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5\n```\n\n##\n\n`offset` parameter can be used to retrieve items starting from a specific index of the result list. For example, to select the second set of 5 results (i.e. results 6 through 10), you would do the following:\n\n##\n\n```\n/works?query=allen+renear&rows=5&offset=5\n```\n\n##\n\n## Deep paging\n\nDeep paging using cursors can be used to iterate over large result sets, without any limits on their size.\n\n##\n\nTo use deep paging make a query as normal, but include the `cursor` parameter with a value of `*`, for example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=*\n```\n\n##\n\nA `next-cursor` field will be provided in the JSON response. To get the next page of results, pass the value of `next-cursor` as the cursor parameter (remember to URL-encode). For example:\n\n##\n\n```\n/members/311/works?filter=type:journal-article&cursor=<value of next-cursor parameter>\n```\n\n##\n\nClients should check the number of returned items. If the number of returned items is equal to the number of expected rows then the end of the result set has been reached. Using next-cursor beyond this point will result in responses with an empty items list. Cursors expire after 5 minutes if they are not used.\n\n##\n\n## Sample\n\nBeing able to select random results is useful for both testing and sampling. You can use the `sample` parameter to retrieve random results. So, for example, the following selects 10 random works:\n\n##\n```\n/works?sample=10\n```\n##\n\nNote that when you use the `sample` parameter, the `rows` and `offset` parameters are ignored.\n\n\n## Parameter combinations\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` can be used with offsets. Sampling cannot be combined with offsets.\n\n##\n\nAny combination of `query`, `query.*`, `filter`, `facet`, `select` and `sort` may also be used with deep paging cursors. `rows` may also be specified.\n\n##\n\n`offset` and `sample` cannot be used in combination with cursors.\n\n##\n",
+        "parameters": [
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "The number of rows per page",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Combined with sort can be used to specify the order of results, e.g. asc or desc",
+            "schema": {
+              "pattern": "(asc|desc)",
+              "type": "string"
+            }
+          },
+          {
+            "name": "facet",
+            "in": "query",
+            "description": "Exposes the ability to retrieve counts for pre-defined facets e.g. `type-name:*` returns counts of all works by type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sample",
+            "in": "query",
+            "description": "Exposes the ability to return `N` randomly sampled items",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Exposes the ability to sort results by a certain field, e.g. `score`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of rows to skip before returning",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mailto",
+            "in": "query",
+            "description": "The email address to identify yourself and be in the \"polite pool\"",
+            "schema": {
+              "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,6}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "description": "Exposes the ability to select certain fields, supports a comma separated list of fields, e.g. `DOI,volume`",
+            "schema": {
+              "pattern": "^\\w+(,\\w+)*$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Exposes the ability to free text query certain fields",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Exposes the ability to filter by certain fields, supports a comma separated list of lucene filters, e.g. `content-domain:psychoceramics.labs.crossref.org`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Exposes the ability to deep page through large result sets, where offset would cause performance problems",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "issn",
+            "in": "path",
+            "description": "The ISSN identifier associated with the journal",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorksMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkLicense": {
+        "required": ["URL", "content-version", "delay-in-days"],
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          },
+          "start": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "delay-in-days": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content-version": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkClinicalTrial": {
+        "required": ["clinical-trial-number", "registry"],
+        "type": "object",
+        "properties": {
+          "clinical-trial-number": {
+            "type": "string"
+          },
+          "registry": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "issn": {
+            "type": "string"
+          },
+          "standards-body": {
+            "type": "string"
+          },
+          "issue": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "series-title": {
+            "type": "string"
+          },
+          "isbn-type": {
+            "type": "string"
+          },
+          "doi-asserted-by": {
+            "type": "string"
+          },
+          "first-page": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "doi": {
+            "type": "string"
+          },
+          "component": {
+            "type": "string"
+          },
+          "article-title": {
+            "type": "string"
+          },
+          "volume-title": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "standard-designator": {
+            "type": "string"
+          },
+          "year": {
+            "type": "string"
+          },
+          "unstructured": {
+            "type": "string"
+          },
+          "edition": {
+            "type": "string"
+          },
+          "journal-title": {
+            "type": "string"
+          },
+          "issn-type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Agency": {
+        "required": ["id", "label"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkLink": {
+        "required": ["URL", "content-type", "content-version", "intended-application"],
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          },
+          "content-type": {
+            "type": "string"
+          },
+          "content-version": {
+            "type": "string"
+          },
+          "intended-application": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FunderIdentifier": {
+        "required": ["asserted-by", "id", "id-type"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "id-type": {
+            "type": "string"
+          },
+          "asserted-by": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecondaryResource": {
+        "required": ["URL", "label"],
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Works": {
+        "required": ["items", "items-per-page", "query", "total-results"],
+        "type": "object",
+        "properties": {
+          "items-per-page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "query": {
+            "$ref": "#/components/schemas/Query"
+          },
+          "total-results": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next-cursor": {
+            "type": "string",
+            "description": "Used to navigate to the next page of results when using cursor deep paging"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Work"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkAssertionExplanation": {
+        "required": ["URL"],
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Affiliation": {
+        "required": ["name"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Query": {
+        "required": ["search-terms", "start-index"],
+        "type": "object",
+        "properties": {
+          "start-index": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "search-terms": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DateParts": {
+        "required": ["date-parts"],
+        "type": "object",
+        "properties": {
+          "date-parts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "VersionInfo": {
+        "required": ["version"],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "version-description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionInfoDescription"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkUpdate": {
+        "required": ["DOI", "label", "type", "updated"],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "DOI": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updated": {
+            "$ref": "#/components/schemas/Date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DoiAgency": {
+        "required": ["DOI", "agency"],
+        "type": "object",
+        "properties": {
+          "DOI": {
+            "type": "string",
+            "description": "The DOI identifier associated with the work"
+          },
+          "agency": {
+            "$ref": "#/components/schemas/Agency"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkISSNType": {
+        "required": ["type", "value"],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkMessage": {
+        "required": ["message", "message-type", "message-version", "status"],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message-type": {
+            "pattern": "work",
+            "type": "string"
+          },
+          "message-version": {
+            "type": "string"
+          },
+          "message": {
+            "$ref": "#/components/schemas/Work"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkStandardsBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "acronym": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Work": {
+        "required": [
+          "DOI",
+          "URL",
+          "created",
+          "deposited",
+          "indexed",
+          "issued",
+          "member",
+          "prefix",
+          "publisher",
+          "resource",
+          "score",
+          "source",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkInstitution"
+            }
+          },
+          "indexed": {
+            "$ref": "#/components/schemas/DateAndVersion"
+          },
+          "posted": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "publisher-location": {
+            "type": "string"
+          },
+          "update-to": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkUpdate"
+            }
+          },
+          "standards-body": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkStandardsBody"
+            }
+          },
+          "edition-number": {
+            "type": "string"
+          },
+          "group-title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reference-count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "issue": {
+            "type": "string"
+          },
+          "isbn-type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkISSNType"
+            }
+          },
+          "license": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkLicense"
+            }
+          },
+          "funder": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkFunder"
+            }
+          },
+          "content-domain": {
+            "$ref": "#/components/schemas/WorkDomain"
+          },
+          "chair": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            }
+          },
+          "short-container-title": {
+            "type": "string"
+          },
+          "accepted": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "content-updated": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "published-print": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "abstract": {
+            "type": "string"
+          },
+          "DOI": {
+            "type": "string",
+            "description": "The DOI identifier associated with the work"
+          },
+          "type": {
+            "type": "string"
+          },
+          "created": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "approved": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "page": {
+            "type": "string"
+          },
+          "update-policy": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "is-referenced-by-count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "string"
+          },
+          "clinical-trial-number": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkClinicalTrial"
+            }
+          },
+          "author": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            }
+          },
+          "member": {
+            "type": "string"
+          },
+          "content-created": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "published-online": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/Reference"
+          },
+          "container-title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "review": {
+            "$ref": "#/components/schemas/WorkReview"
+          },
+          "original-title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "link": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkLink"
+            }
+          },
+          "deposited": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "degree": {
+            "type": "string"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/Resources"
+          },
+          "subtitle": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "translator": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            }
+          },
+          "free-to-read": {
+            "$ref": "#/components/schemas/WorkFreeToRead"
+          },
+          "editor": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            }
+          },
+          "proceedings-subject": {
+            "type": "string"
+          },
+          "component-number": {
+            "type": "string"
+          },
+          "short-title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "issued": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "ISBN": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "references-count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "part-number": {
+            "type": "string"
+          },
+          "issue-title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "journal-issue": {
+            "$ref": "#/components/schemas/WorkJournalIssue"
+          },
+          "alternative-id": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "$ref": "#/components/schemas/VersionInfo"
+          },
+          "URL": {
+            "type": "string"
+          },
+          "archive": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relation": {
+            "$ref": "#/components/schemas/WorkRelation"
+          },
+          "ISSN": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "issn-type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkISSNType"
+            }
+          },
+          "subject": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "published-other": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "published": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "assertion": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkAssertion"
+            }
+          },
+          "subtype": {
+            "type": "string"
+          },
+          "article-number": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VersionInfoDescription": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AgencyMessage": {
+        "required": ["message", "message-type", "message-version", "status"],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message-type": {
+            "pattern": "work-agency",
+            "type": "string"
+          },
+          "message-version": {
+            "type": "string"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DoiAgency"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkDomain": {
+        "required": ["domain"],
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "crossmark-restriction": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrimaryResource": {
+        "required": ["URL"],
+        "type": "object",
+        "properties": {
+          "URL": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DateAndVersion": {
+        "required": ["date-parts", "date-time", "timestamp", "version"],
+        "type": "object",
+        "properties": {
+          "date-parts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "date-time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkFunder": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "DOI": {
+            "type": "string"
+          },
+          "doi-asserted-by": {
+            "type": "string"
+          },
+          "award": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunderIdentifier"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Date": {
+        "required": ["date-parts", "date-time", "timestamp"],
+        "type": "object",
+        "properties": {
+          "date-parts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "date-time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkRelation": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/WorkRelationObject"
+        }
+      },
+      "WorkAssertion": {
+        "required": ["name"],
+        "type": "object",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/WorkAssertionGroup"
+          },
+          "explanation": {
+            "$ref": "#/components/schemas/WorkAssertionExplanation"
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "URL": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkInstitution": {
+        "required": ["name"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "place": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "department": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acronym": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Author": {
+        "required": ["affiliation", "sequence"],
+        "type": "object",
+        "properties": {
+          "ORCID": {
+            "type": "string"
+          },
+          "suffix": {
+            "type": "string"
+          },
+          "given": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "affiliation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Affiliation"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "authenticated-orcid": {
+            "type": "boolean"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorksMessage": {
+        "required": ["message", "message-type", "message-version", "status"],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message-type": {
+            "pattern": "work-list",
+            "type": "string"
+          },
+          "message-version": {
+            "type": "string"
+          },
+          "message": {
+            "$ref": "#/components/schemas/Works"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkRelationObject": {
+        "required": ["asserted-by", "id", "id-type"],
+        "type": "object",
+        "properties": {
+          "id-type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "asserted-by": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkFreeToRead": {
+        "type": "object",
+        "properties": {
+          "start-date": {
+            "$ref": "#/components/schemas/DateParts"
+          },
+          "end-date": {
+            "$ref": "#/components/schemas/DateParts"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkJournalIssue": {
+        "required": ["issue"],
+        "type": "object",
+        "properties": {
+          "issue": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Resources": {
+        "required": ["primary"],
+        "type": "object",
+        "properties": {
+          "primary": {
+            "$ref": "#/components/schemas/PrimaryResource"
+          },
+          "secondary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecondaryResource"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkReview": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "running-number": {
+            "type": "string"
+          },
+          "revision-round": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "competing-interest-statement": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkAssertionGroup": {
+        "required": ["name"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "x-original-swagger-version": "2.0"
+}

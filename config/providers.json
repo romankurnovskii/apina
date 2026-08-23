@@ -73,6 +73,44 @@
           "value": "crypto"
         }
       ]
+    },
+    {
+      "id": "semantic-scholar",
+      "name": "Semantic Scholar Graph API",
+      "base_url": "https://api.semanticscholar.org/graph/v1",
+      "schema_path": "semantic-scholar/openapi.json",
+      "version": "1.0.0",
+      "documentation": "https://api.semanticscholar.org/product/api",
+      "description": "Semantic Scholar Academic Graph API for paper search, batch lookup, citations, references, and author data",
+      "rate_limit": {
+        "requests": 100,
+        "period": "minute"
+      },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "research"
+        }
+      ]
+    },
+    {
+      "id": "crossref",
+      "name": "Crossref REST API",
+      "base_url": "https://api.crossref.org",
+      "schema_path": "crossref/openapi.json",
+      "version": "3.32.0",
+      "documentation": "https://api.crossref.org/learning/",
+      "description": "Crossref REST API for searching and retrieving scholarly works, DOIs, members, funders, journals, and publication metadata",
+      "rate_limit": {
+        "requests": 50,
+        "period": "second"
+      },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "research"
+        }
+      ]
     }
   ]
 }

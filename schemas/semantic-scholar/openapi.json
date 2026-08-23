@@ -1,0 +1,1423 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Academic Graph Author Data Paper Data API",
+    "version": "1.0",
+    "description": "Fetch paper and author data from the Semantic Scholar Academic Graph (S2AG).\n        <br><br>\n        Some things to note:\n        <ul>\n        <li>If you are using an API key, it must be set in the header <code>x-api-key</code> (case-sensitive).</li>\n        <li>We have two different IDs for a single paper:\n          <ul>\n            <li><code>paperId</code> - string - The primary way to identify papers when using our website or this API</li>\n            <li><code>corpusId</code> - int64 - A second way to identify papers. Our datasets use corpusId when pointing to papers.</li>\n          </ul>\n        </li>\n        <li>Other useful resources<ul>\n        <li><a href=\"https://www.semanticscholar.org/product/api\">Overview</a></li>\n        <li><a href=\"https://github.com/allenai/s2-folks/\">allenai/s2-folks</a></li>\n        <li><a href=\"https://github.com/allenai/s2-folks/blob/main/FAQ.md\">FAQ</a> in allenai/s2folks</li>\n        </ul></li>\n        "
+  },
+  "servers": [
+    {
+      "url": "https://api.semanticscholar.org/graph/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Paper Data"
+    }
+  ],
+  "paths": {
+    "/paper/autocomplete": {
+      "get": {
+        "summary": "Suggest paper query completions",
+        "operationId": "get_graph_get_paper_autocomplete",
+        "tags": ["Paper Data"],
+        "description": "To support interactive query-completion, return minimal information about papers matching a partial query\n\nExample:\n<code>https://api.semanticscholar.org/graph/v1/paper/autocomplete?query=semanti</code>",
+        "responses": {
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Batch of papers with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAutocomplete"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/batch": {
+      "post": {
+        "summary": "Get details for multiple papers at once",
+        "operationId": "post_graph_get_papers",
+        "tags": ["Paper Data"],
+        "description": "* Fields is a single-value string parameter, not a multi-value one.\n* It is a query parameter, not to be submitted in the POST request's body.\n\nIn python:\n\n    r = requests.post(\n        'https://api.semanticscholar.org/graph/v1/paper/batch',\n        params={'fields': 'referenceCount,citationCount,title'},\n        json={\"ids\": [\"649def34f8be52c8b66281af98ae884c09aef38b\", \"ARXIV:2106.15928\"]}\n    )\n    print(json.dumps(r.json(), indent=2))\n\n    [\n      {\n        \"paperId\": \"649def34f8be52c8b66281af98ae884c09aef38b\",\n        \"title\": \"Construction of the Literature Graph in Semantic Scholar\",\n        \"referenceCount\": 27,\n        \"citationCount\": 299\n      },\n      {\n        \"paperId\": \"f712fab0d58ae6492e3cdfc1933dae103ec12d5d\",\n        \"title\": \"Reinfection and low cross-immunity as drivers of epidemic resurgence under high seroprevalence: a model-based approach with application to Amazonas, Brazil\",\n        \"referenceCount\": 13,\n        \"citationCount\": 0\n      }\n    ]\n\nOther Examples:\n<ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/batch</code></li>\n    <ul>\n        <li><code>{\"ids\":[\"649def34f8be52c8b66281af98ae884c09aef38b\", \"ARXIV:2106.15928\"]}</code></li>\n        <li>Returns details for 2 papers.</li>\n        <li>Each paper has its paperId and title.  </li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/batch?fields=title,isOpenAccess,openAccessPdf,authors</code></li>\n    <ul>\n        <li><code>{\"ids\":[\"649def34f8be52c8b66281af98ae884c09aef38b\", \"ARXIV:2106.15928\"]}</code></li>\n        <li>Returns all requested info plus paper IDs for 2 papers.</li>\n    </ul>\n</ul>\n<br>\nLimitations:\n<ul>\n    <li>Can only process 500 paper ids at a time.</li>\n    <li>Can only return up to 10 MB of data at a time.</li>\n    <li>Can only return up to 9999 citations at a time.</li>\n    <li>For a list of supported IDs reference the \"Details about a paper\" endpoint.</li>\n</ul>",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "List of papers with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FullPaper"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/search": {
+      "get": {
+        "summary": "Paper relevance search",
+        "operationId": "get_graph_paper_relevance_search",
+        "tags": ["Paper Data"],
+        "description": "Examples:\n<ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search?query=covid+vaccination&offset=100&limit=3</code></li>\n  <ul>\n    <li>Returns with total=576278, offset=100, next=103, and data is a list of 3 papers.</li>\n    <li>Each paper has its paperId and title.  </li>\n  </ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search?query=covid&fields=url,abstract,authors</code></li>\n  <ul>\n    <li>Returns with total=639637, offset=0, next=100, and data is a list of 100 papers.</li>\n    <li>Each paper has paperId, url, abstract, and a list of authors.</li>\n    <li>Each author under that list has authorId and name.</li>\n  </ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search?query=totalGarbageNonsense</code></li>\n  <ul>\n    <li>Returns with total=0, offset=0, and data is a list of 0 papers.</li>\n  </ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search?query=covid&year=2020-2023&openAccessPdf&fieldsOfStudy=Physics,Philosophy&fields=title,year,authors</code></li>\n  <ul>\n    <li>Returns with total=8471, offset=0, next=10, and data is a list of 10 papers. </li>\n    <li>Filters to include only papers published between 2020-2023.</li>\n    <li>Filters to include only papers with open access PDFs.</li>\n    <li>Filters to include only papers that have a field of study either matching Physics or Philosophy.</li>\n    <li>Each paper has the fields paperId, title, year, and authors.</li>\n  </ul>\n  <br>\n    Limitations:\n    <ul>\n        <li>Can only return up to 1,000 relevance-ranked results. For larger queries, see \"/search/bulk\" or the Datasets API.</li>\n        <li>Can only return up to 10 MB of data at a time.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Batch of papers with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRelevanceSearchBatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/search/bulk": {
+      "get": {
+        "summary": "Paper bulk search",
+        "operationId": "get_graph_paper_bulk_search",
+        "tags": ["Paper Data"],
+        "description": "Behaves similarly to <code>/paper/search</code>, but is intended for bulk retrieval of basic paper data without search relevance:\n<ul>\n<li>Text query is optional and supports boolean logic for document matching.</li>\n<li>Papers can be filtered using various criteria.</li>\n<li>Up to 1,000 papers will be returned in each call.</li>\n<li>If there are more matching papers, a continuation \"token\" will be present.</li>\n<li>The query can be repeated with the token param added to efficiently continue fetching matching papers.</li>\n</ul>\n<br>\nReturns a structure with an estimated total matches, batch of matching papers, and a continuation token if more results are available.\n<br>\nLimitations:\n<ul>\n<li>Nested paper data, such as citations, references, etc, is not available via this method.</li>\n<li>Up to 10,000,000 papers can be fetched via this method. For larger needs, please use the <a href=\"datasets/\">Datasets API</a> to retrieve full copies of the corpus.</li>\n</ul>",
+        "responses": {
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Batch of papers with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperBulkSearchBatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/search/match": {
+      "get": {
+        "summary": "Paper title search",
+        "operationId": "get_graph_paper_title_search",
+        "tags": ["Paper Data"],
+        "description": "Behaves similarly to <code>/paper/search</code>, but is intended for retrieval of a single paper based on closest title match to given query.\nExamples:\n<ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search/match?query=Construction of the Literature Graph in Semantic Scholar</code></li>\n  <ul>\n    <li>Returns a single paper that is the closest title match.</li>\n    <li>Each paper has its paperId, title, and matchScore as well as any other requested fields.</li>\n  </ul>\n  <li><code>https://api.semanticscholar.org/graph/v1/paper/search/match?query=totalGarbageNonsense</code></li>\n  <ul>\n    <li>Returns with a 404 error and a \"Title match not found\" message.</li>\n  </ul>\n</ul>\n  <br>\n    Limitations:\n    <ul>\n        <li>Will only return the single highest match result.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "404": {
+            "description": "No title match",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Best Title match paper with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperMatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/{paper_id}": {
+      "get": {
+        "summary": "Details about a paper",
+        "operationId": "get_graph_get_paper",
+        "tags": ["Paper Data"],
+        "description": "Examples:\n<ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b</code></li>\n    <ul>\n        <li>Returns a paper with its paperId and title.  </li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b?fields=url,year,authors</code></li>\n    <ul>\n        <li>Returns the paper's paperId, url, year, and list of authors.  </li>\n        <li>Each author has authorId and name.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b?fields=citations.authors</code></li>\n    <ul>\n        <li>Returns the paper's paperId and list of citations.  </li>\n        <li>Each citation has its paperId plus its list of authors.</li>\n        <li>Each author has their 2 always included fields of authorId and name.</li>\n    </ul>\n    <br>\n    Limitations:\n    <ul>\n        <li>Can only return up to 10 MB of data at a time.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "404": {
+            "description": "Bad paper id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Paper with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FullPaper"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/{paper_id}/authors": {
+      "get": {
+        "summary": "Details about a paper's authors",
+        "operationId": "get_graph_get_paper_authors",
+        "tags": ["Paper Data"],
+        "description": "Examples:\n<ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/authors</code></li>\n    <ul>\n        <li>Returns with offset=0, and data is a list of all 3 authors.</li>\n        <li>Each author has their authorId and name</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/authors?fields=affiliations,papers&limit=2</code></li>\n    <ul>\n        <li>Returns with offset=0, next=2, and data is a list of 2 authors.</li>\n        <li>Each author has their authorId, affiliations, and list of papers.</li>\n        <li>Each paper has its paperId and title.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/authors?fields=url,papers.year,papers.authors&offset=2</code></li>\n    <ul>\n        <li>Returns with offset=2, and data is a list containing the last author.</li>\n        <li>This author has their authorId, url, and list of papers.</li>\n        <li>Each paper has its paperId, year, and list of authors.</li>\n        <li>In that list of authors, each author has their authorId and name.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "404": {
+            "description": "Bad paper id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "List of Authors with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorBatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/{paper_id}/citations": {
+      "get": {
+        "summary": "Details about a paper's citations",
+        "operationId": "get_graph_get_paper_citations",
+        "tags": ["Paper Data"],
+        "description": "Fetch details about the papers that cite this paper (i.e. papers in whose bibliography this paper appears)\n<br><br>\nExamples:\n<ul>\n    <li>Let's suppose that the paper in the examples below has 1600 citations...</li>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/citations</code></li>\n    <ul>\n        <li>Returns with offset=0, next=100, and data is a list of 100 citations.</li>\n        <li>Each citation has a citingPaper which contains its paperId and title.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/citations?fields=contexts,intents,isInfluential,abstract&offset=200&limit=10</code></li>\n    <ul>\n        <li>Returns with offset=200, next=210, and data is a list of 10 citations.</li>\n        <li>Each citation has contexts, intents, isInfluential, and a citingPaper which contains its paperId and abstract.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/citations?fields=authors&offset=1500&limit=500</code></li>\n    <ul>\n        <li>Returns with offset=1500, and data is a list of the last 100 citations.</li>\n        <li>Each citation has a citingPaper which contains its paperId plus a list of authors</li>\n        <li>The authors under each citingPaper has their authorId and name.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "404": {
+            "description": "Bad paper id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Batch of citations with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CitationBatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paper/{paper_id}/references": {
+      "get": {
+        "summary": "Details about a paper's references",
+        "operationId": "get_graph_get_paper_references",
+        "tags": ["Paper Data"],
+        "description": "Fetch details about the papers cited by this paper (i.e. appearing in this paper's bibliography)\n<br><br>\nExamples:\n<ul>\n    <li>Let's suppose that the paper in the examples below has 1600 references...</li>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/references</code></li>\n    <ul>\n        <li>Returns with offset=0, next=100, and data is a list of 100 references.</li>\n        <li>Each reference has a citedPaper which contains its paperId and title.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/references?fields=contexts,intents,isInfluential,abstract&offset=200&limit=10</code></li>\n    <ul>\n        <li>Returns with offset=200, next=210, and data is a list of 10 references.</li>\n        <li>Each reference has contexts, intents, isInfluential, and a citedPaper which contains its paperId and abstract.</li>\n    </ul>\n    <li><code>https://api.semanticscholar.org/graph/v1/paper/649def34f8be52c8b66281af98ae884c09aef38b/references?fields=authors&offset=1500&limit=500</code></li>\n    <ul>\n        <li>Returns with offset=1500, and data is a list of the last 100 references.</li>\n        <li>Each reference has a citedPaper which contains its paperId plus a list of authors</li>\n        <li>The authors under each citedPaper has their authorId and name.</li>\n    </ul>\n</ul>",
+        "responses": {
+          "404": {
+            "description": "Bad paper id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Batch of references with default or requested fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceBatch"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ReferenceBatch": {
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "description": "Starting position for this batch."
+          },
+          "next": {
+            "type": "integer",
+            "description": "Starting position of the next batch. Absent if no more data exists."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "contents of this batch",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Reference"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Autocomplete Paper": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The paper's primary unique identifier.",
+            "example": "649def34f8be52c8b66281af98ae884c09aef38b"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the paper.",
+            "example": "SciBERT: A Pretrained Language Model for Scientific Text"
+          },
+          "authorsYear": {
+            "type": "string",
+            "description": "Summary of the authors of the paper and year of publication.",
+            "example": "Beltagy et al., 2019"
+          }
+        },
+        "type": "object"
+      },
+      "Error400": {
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Depending on the case, error message may be any of these:\n<ul>\n    <li><code>\"Unrecognized or unsupported fields: [bad1, bad2, etc...]\"</code></li>\n    <li><code>\"Unacceptable query params: [badK1=badV1, badK2=badV2, etc...}]\"</code></li>\n    <li><code>\"Response would exceed maximum size....\"</code></li>\n        <ul><li>This error will occur when the response exceeds 10 MB. Suggestions to either break the request into smaller batches, or make use of the limit and offset features will be presented.</li></ul>\n    <li>A custom message string</li></ul>",
+            "example": "Unrecognized or unsupported fields: [author.creditCardNumber, garbage]"
+          }
+        },
+        "type": "object"
+      },
+      "NormalizedAffiliation": {
+        "properties": {
+          "rorId": {
+            "type": "string",
+            "description": "ROR (Research Organization Registry) unique ID.",
+            "example": "https://ror.org/05w520734"
+          },
+          "rorDisplayName": {
+            "type": "string",
+            "description": "Official ROR display name.",
+            "example": "Allen Institute for Artificial Intelligence"
+          }
+        },
+        "type": "object"
+      },
+      "AuthorInPaperWithPapers": {
+        "properties": {
+          "authorId": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Semantic Scholar\u2019s unique ID for the author.",
+            "example": "1741101"
+          },
+          "externalIds": {
+            "type": "object",
+            "description": "An object that contains the ORCID/DBLP IDs for the author, if known.",
+            "example": {
+              "DBLP": [123]
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the author on the Semantic Scholar website.",
+            "example": "https://www.semanticscholar.org/author/1741101"
+          },
+          "name": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Author\u2019s name.",
+            "example": "Oren Etzioni"
+          },
+          "affiliations": {
+            "type": "array",
+            "description": "Array of organizational affiliations for the author.",
+            "example": ["Allen Institute for AI"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "homepage": {
+            "type": "string",
+            "description": "The author\u2019s homepage.",
+            "example": "https://allenai.org/"
+          },
+          "paperCount": {
+            "type": "string",
+            "description": "The author's total publications count.",
+            "example": 10
+          },
+          "citationCount": {
+            "type": "string",
+            "description": "The author's total citations count.",
+            "example": 50
+          },
+          "hIndex": {
+            "type": "string",
+            "description": "The author\u2019s h-index, which is a measure of the productivity and citation impact of the author\u2019s publications: https://www.semanticscholar.org/faq#h-index",
+            "example": 5
+          },
+          "normalizedAffiliations": {
+            "type": "array",
+            "description": "Array of organizational ROR-based normalized affiliations for the author (ROR - Research Organization Registry).",
+            "example": [
+              {
+                "rorId": "https://ror.org/05w520734",
+                "rorDisplayName": "Allen Institute for Artificial Intelligence"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/NormalizedAffiliation"
+            }
+          },
+          "papers": {
+            "type": "array",
+            "items": {
+              "title": "Paper Info",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BasePaper"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Reference": {
+        "properties": {
+          "contexts": {
+            "type": "array",
+            "description": "Array of text snippets where the reference to the paper is mentioned.",
+            "example": [
+              "SciBERT (Beltagy et al., 2019) follows the BERT\u2019s masking strategy to pre-train the model from scratch using a scientific corpus composed of papers from Semantic Scholar (Ammar et al., 2018).",
+              "27M articles from the Semantic Scholar dataset (Ammar et al., 2018)."
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "intents": {
+            "type": "array",
+            "description": "Array of citation intents that summarizes how the reference to the paper is mentioned. Possible intents: https://www.semanticscholar.org/faq#citation-intent",
+            "example": ["methodology"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "contextsWithIntent": {
+            "type": "array",
+            "description": "Array of objects that contain both contexts and the intents they are associated with.",
+            "example": [
+              {
+                "context": "SciBERT (Beltagy et al., 2019) follows the BERT\u2019s ...",
+                "intents": ["methodology"]
+              }
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "isInfluential": {
+            "type": "boolean",
+            "description": "Whether the citing paper is highly influential. See more about influential citations: https://www.semanticscholar.org/faq#influential-citations",
+            "example": false
+          },
+          "citedPaper": {
+            "description": "Details about the cited paper",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BasePaper"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "AuthorInfo": {
+        "properties": {
+          "authorId": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Semantic Scholar\u2019s unique ID for the author.",
+            "example": "1741101"
+          },
+          "name": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Author\u2019s name.",
+            "example": "Oren Etzioni"
+          }
+        },
+        "type": "object"
+      },
+      "Title Match Paper": {
+        "properties": {
+          "matchScore": {
+            "type": "integer",
+            "example": 174.2298
+          },
+          "paperId": {
+            "type": "string",
+            "description": "Semantic Scholar\u2019s primary unique identifier for a paper.",
+            "example": "5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "corpusId": {
+            "type": "integer",
+            "description": "Semantic Scholar\u2019s secondary unique identifier for a paper.",
+            "example": 215416146
+          },
+          "externalIds": {
+            "type": "object",
+            "description": "An object that contains the paper\u2019s unique identifiers in external sources. The external sources are limited to: ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, and DOI.",
+            "example": {
+              "MAG": "3015453090",
+              "DBLP": "conf/acl/LoWNKW20",
+              "ACL": "2020.acl-main.447",
+              "DOI": "10.18653/V1/2020.ACL-MAIN.447",
+              "CorpusId": 215416146
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the paper on the Semantic Scholar website.",
+            "example": "https://www.semanticscholar.org/paper/5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the paper.",
+            "example": "Construction of the Literature Graph in Semantic Scholar"
+          },
+          "abstract": {
+            "type": "string",
+            "description": "The paper's abstract. Note that due to legal reasons, this may be missing even if we display an abstract on the website.",
+            "example": "We describe a deployed scalable system for organizing published scientific literature into a heterogeneous graph to facilitate algorithmic manipulation and discovery."
+          },
+          "venue": {
+            "type": "string",
+            "description": "The name of the paper\u2019s publication venue.",
+            "example": "Annual Meeting of the Association for Computational Linguistics"
+          },
+          "publicationVenue": {
+            "type": "object",
+            "description": "An object that contains the following information about the journal or conference in which this paper was published: id (the venue\u2019s unique ID), name (the venue\u2019s name), type (the type of venue), alternate_names (an array of alternate names for the venue), and url (the venue\u2019s website).",
+            "example": {
+              "id": "1e33b3be-b2ab-46e9-96e8-d4eb4bad6e44",
+              "name": "Annual Meeting of the Association for Computational Linguistics",
+              "type": "conference",
+              "alternate_names": [
+                "Annu Meet Assoc Comput Linguistics",
+                "Meeting of the Association for Computational Linguistics",
+                "ACL",
+                "Meet Assoc Comput Linguistics"
+              ],
+              "url": "https://www.aclweb.org/anthology/venues/acl/"
+            }
+          },
+          "year": {
+            "type": "integer",
+            "description": "The year the paper was published.",
+            "example": 1997
+          },
+          "referenceCount": {
+            "type": "integer",
+            "description": "The total number of papers this paper references.",
+            "example": 59
+          },
+          "citationCount": {
+            "type": "integer",
+            "description": "The total number of papers that references this paper.",
+            "example": 453
+          },
+          "influentialCitationCount": {
+            "type": "integer",
+            "description": "A subset of the citation count, where the cited publication has a significant impact on the citing publication. Determined by Semantic Scholar\u2019s algorithm: https://www.semanticscholar.org/faq#influential-citations.",
+            "example": 90
+          },
+          "isOpenAccess": {
+            "type": "boolean",
+            "description": "Whether the paper is open access. More information here: https://www.openaccess.nl/en/what-is-open-access.",
+            "example": true
+          },
+          "openAccessPdf": {
+            "type": "object",
+            "description": "An object that contains the following parameters: url (a link to the paper\u2019s PDF), status (the type of open access https://en.wikipedia.org/wiki/Open_access#Colour_naming_system), the paper's license, and a legal disclaimer.",
+            "example": {
+              "url": "https://www.aclweb.org/anthology/2020.acl-main.447.pdf",
+              "status": "HYBRID",
+              "license": "CCBY",
+              "disclaimer": "Notice: This snippet is extracted from the open access paper or abstract available at https://aclanthology.org/2020.acl-main.447, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+            }
+          },
+          "fieldsOfStudy": {
+            "type": "array",
+            "description": "A list of the paper\u2019s high-level academic categories from external sources. The possible fields are: Computer Science, Medicine, Chemistry, Biology, Materials Science, Physics, Geology, Psychology, Art, History, Geography, Sociology, Business, Political Science, Economics, Philosophy, Mathematics, Engineering, Environmental Science, Agricultural and Food Sciences, Education, Law, and Linguistics.",
+            "example": ["Computer Science"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "s2FieldsOfStudy": {
+            "type": "array",
+            "description": "An array of objects. Each object contains the following parameters: category (a field of study. The possible fields are the same as in fieldsOfStudy), and source (specifies whether the category was classified by Semantic Scholar or by an external source. More information on how Semantic Scholar classifies papers https://medium.com/ai2-blog/announcing-s2fos-an-open-source-academic-field-of-study-classifier-9d2f641949e5)",
+            "example": [
+              {
+                "category": "Computer Science",
+                "source": "external"
+              },
+              {
+                "category": "Computer Science",
+                "source": "s2-fos-model"
+              },
+              {
+                "category": "Mathematics",
+                "source": "s2-fos-model"
+              }
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "publicationTypes": {
+            "type": "array",
+            "description": "The type of this publication.",
+            "example": ["Journal Article", "Review"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "publicationDate": {
+            "type": "string",
+            "description": "The date when this paper was published, in YYYY-MM-DD format.",
+            "example": "2024-04-29"
+          },
+          "journal": {
+            "type": "object",
+            "description": "An object that contains the following parameters, if available: name (the journal name), volume (the journal\u2019s volume number), and pages (the page number range)",
+            "example": {
+              "volume": "40",
+              "pages": "116 - 135",
+              "name": "IETE Technical Review"
+            }
+          },
+          "citationStyles": {
+            "type": "object",
+            "description": "The BibTex bibliographical citation of the paper.",
+            "example": {
+              "bibtex": "@['JournalArticle', 'Conference']{Ammar2018ConstructionOT,\n author = {Waleed Ammar and Dirk Groeneveld and Chandra Bhagavatula and Iz Beltagy and Miles Crawford and Doug Downey and Jason Dunkelberger and Ahmed Elgohary and Sergey Feldman and Vu A. Ha and Rodney Michael Kinney and Sebastian Kohlmeier and Kyle Lo and Tyler C. Murray and Hsu-Han Ooi and Matthew E. Peters and Joanna L. Power and Sam Skjonsberg and Lucy Lu Wang and Christopher Wilhelm and Zheng Yuan and Madeleine van Zuylen and Oren Etzioni},\n booktitle = {NAACL},\n pages = {84-91},\n title = {Construction of the Literature Graph in Semantic Scholar},\n year = {2018}\n}\n"
+            }
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "title": "Author Info",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/AuthorInPaper"
+                }
+              ]
+            }
+          },
+          "citations": {
+            "type": "array",
+            "title": "Paper Info",
+            "items": {
+              "$ref": "#/components/schemas/BasePaper"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "title": "Paper Info",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BasePaper"
+                }
+              ]
+            }
+          },
+          "embedding": {
+            "$ref": "#/components/schemas/Embedding"
+          },
+          "tldr": {
+            "$ref": "#/components/schemas/Tldr"
+          },
+          "textAvailability": {
+            "type": "string",
+            "description": "fulltext, abstract, or none, based on what we have available for this paper"
+          }
+        },
+        "type": "object"
+      },
+      "AuthorBatch": {
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "description": "Starting position for this batch."
+          },
+          "next": {
+            "type": "integer",
+            "description": "Starting position of the next batch. Absent if no more data exists."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "contents of this batch",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/AuthorInPaperWithPapers"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "PaperRelevanceSearchBatch": {
+        "properties": {
+          "total": {
+            "type": "string",
+            "description": "Approximate number of matching search results.\n\nBecause of the subtleties of finding partial phrase matches in different parts of the document, be cautious about interpreting the total field as a count of documents containing any particular word in the query.",
+            "example": 15117
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Starting position for this batch."
+          },
+          "next": {
+            "type": "integer",
+            "description": "Starting position of the next batch. Absent if no more data exists."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "contents of this batch",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/FullPaper"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "PaperAutocomplete": {
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Autocomplete Paper"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Embedding": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The Spector vector embedding model version: https://github.com/allenai/specter",
+            "example": "specter@v0.1.1"
+          },
+          "vector": {
+            "type": "object",
+            "description": "Numerical embedding vector.",
+            "example": [-8.82082748413086, -2.6610865592956543]
+          }
+        },
+        "type": "object"
+      },
+      "FullPaper": {
+        "properties": {
+          "paperId": {
+            "type": "string",
+            "description": "Semantic Scholar\u2019s primary unique identifier for a paper.",
+            "example": "5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "corpusId": {
+            "type": "integer",
+            "description": "Semantic Scholar\u2019s secondary unique identifier for a paper.",
+            "example": 215416146
+          },
+          "externalIds": {
+            "type": "object",
+            "description": "An object that contains the paper\u2019s unique identifiers in external sources. The external sources are limited to: ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, and DOI.",
+            "example": {
+              "MAG": "3015453090",
+              "DBLP": "conf/acl/LoWNKW20",
+              "ACL": "2020.acl-main.447",
+              "DOI": "10.18653/V1/2020.ACL-MAIN.447",
+              "CorpusId": 215416146
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the paper on the Semantic Scholar website.",
+            "example": "https://www.semanticscholar.org/paper/5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the paper.",
+            "example": "Construction of the Literature Graph in Semantic Scholar"
+          },
+          "abstract": {
+            "type": "string",
+            "description": "The paper's abstract. Note that due to legal reasons, this may be missing even if we display an abstract on the website.",
+            "example": "We describe a deployed scalable system for organizing published scientific literature into a heterogeneous graph to facilitate algorithmic manipulation and discovery."
+          },
+          "venue": {
+            "type": "string",
+            "description": "The name of the paper\u2019s publication venue.",
+            "example": "Annual Meeting of the Association for Computational Linguistics"
+          },
+          "publicationVenue": {
+            "type": "object",
+            "description": "An object that contains the following information about the journal or conference in which this paper was published: id (the venue\u2019s unique ID), name (the venue\u2019s name), type (the type of venue), alternate_names (an array of alternate names for the venue), and url (the venue\u2019s website).",
+            "example": {
+              "id": "1e33b3be-b2ab-46e9-96e8-d4eb4bad6e44",
+              "name": "Annual Meeting of the Association for Computational Linguistics",
+              "type": "conference",
+              "alternate_names": [
+                "Annu Meet Assoc Comput Linguistics",
+                "Meeting of the Association for Computational Linguistics",
+                "ACL",
+                "Meet Assoc Comput Linguistics"
+              ],
+              "url": "https://www.aclweb.org/anthology/venues/acl/"
+            }
+          },
+          "year": {
+            "type": "integer",
+            "description": "The year the paper was published.",
+            "example": 1997
+          },
+          "referenceCount": {
+            "type": "integer",
+            "description": "The total number of papers this paper references.",
+            "example": 59
+          },
+          "citationCount": {
+            "type": "integer",
+            "description": "The total number of papers that references this paper.",
+            "example": 453
+          },
+          "influentialCitationCount": {
+            "type": "integer",
+            "description": "A subset of the citation count, where the cited publication has a significant impact on the citing publication. Determined by Semantic Scholar\u2019s algorithm: https://www.semanticscholar.org/faq#influential-citations.",
+            "example": 90
+          },
+          "isOpenAccess": {
+            "type": "boolean",
+            "description": "Whether the paper is open access. More information here: https://www.openaccess.nl/en/what-is-open-access.",
+            "example": true
+          },
+          "openAccessPdf": {
+            "type": "object",
+            "description": "An object that contains the following parameters: url (a link to the paper\u2019s PDF), status (the type of open access https://en.wikipedia.org/wiki/Open_access#Colour_naming_system), the paper's license, and a legal disclaimer.",
+            "example": {
+              "url": "https://www.aclweb.org/anthology/2020.acl-main.447.pdf",
+              "status": "HYBRID",
+              "license": "CCBY",
+              "disclaimer": "Notice: This snippet is extracted from the open access paper or abstract available at https://aclanthology.org/2020.acl-main.447, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+            }
+          },
+          "fieldsOfStudy": {
+            "type": "array",
+            "description": "A list of the paper\u2019s high-level academic categories from external sources. The possible fields are: Computer Science, Medicine, Chemistry, Biology, Materials Science, Physics, Geology, Psychology, Art, History, Geography, Sociology, Business, Political Science, Economics, Philosophy, Mathematics, Engineering, Environmental Science, Agricultural and Food Sciences, Education, Law, and Linguistics.",
+            "example": ["Computer Science"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "s2FieldsOfStudy": {
+            "type": "array",
+            "description": "An array of objects. Each object contains the following parameters: category (a field of study. The possible fields are the same as in fieldsOfStudy), and source (specifies whether the category was classified by Semantic Scholar or by an external source. More information on how Semantic Scholar classifies papers https://medium.com/ai2-blog/announcing-s2fos-an-open-source-academic-field-of-study-classifier-9d2f641949e5)",
+            "example": [
+              {
+                "category": "Computer Science",
+                "source": "external"
+              },
+              {
+                "category": "Computer Science",
+                "source": "s2-fos-model"
+              },
+              {
+                "category": "Mathematics",
+                "source": "s2-fos-model"
+              }
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "publicationTypes": {
+            "type": "array",
+            "description": "The type of this publication.",
+            "example": ["Journal Article", "Review"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "publicationDate": {
+            "type": "string",
+            "description": "The date when this paper was published, in YYYY-MM-DD format.",
+            "example": "2024-04-29"
+          },
+          "journal": {
+            "type": "object",
+            "description": "An object that contains the following parameters, if available: name (the journal name), volume (the journal\u2019s volume number), and pages (the page number range)",
+            "example": {
+              "volume": "40",
+              "pages": "116 - 135",
+              "name": "IETE Technical Review"
+            }
+          },
+          "citationStyles": {
+            "type": "object",
+            "description": "The BibTex bibliographical citation of the paper.",
+            "example": {
+              "bibtex": "@['JournalArticle', 'Conference']{Ammar2018ConstructionOT,\n author = {Waleed Ammar and Dirk Groeneveld and Chandra Bhagavatula and Iz Beltagy and Miles Crawford and Doug Downey and Jason Dunkelberger and Ahmed Elgohary and Sergey Feldman and Vu A. Ha and Rodney Michael Kinney and Sebastian Kohlmeier and Kyle Lo and Tyler C. Murray and Hsu-Han Ooi and Matthew E. Peters and Joanna L. Power and Sam Skjonsberg and Lucy Lu Wang and Christopher Wilhelm and Zheng Yuan and Madeleine van Zuylen and Oren Etzioni},\n booktitle = {NAACL},\n pages = {84-91},\n title = {Construction of the Literature Graph in Semantic Scholar},\n year = {2018}\n}\n"
+            }
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "title": "Author Info",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/AuthorInPaper"
+                }
+              ]
+            }
+          },
+          "citations": {
+            "type": "array",
+            "title": "Paper Info",
+            "items": {
+              "$ref": "#/components/schemas/BasePaper"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "title": "Paper Info",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BasePaper"
+                }
+              ]
+            }
+          },
+          "embedding": {
+            "$ref": "#/components/schemas/Embedding"
+          },
+          "tldr": {
+            "$ref": "#/components/schemas/Tldr"
+          },
+          "textAvailability": {
+            "type": "string",
+            "description": "fulltext, abstract, or none, based on what we have available for this paper"
+          }
+        },
+        "type": "object"
+      },
+      "PaperBulkSearchBatch": {
+        "properties": {
+          "total": {
+            "type": "string",
+            "description": "Approximate number of matching search results.\n\nBecause of the subtleties of finding partial phrase matches in different parts of the document, be cautious about interpreting the total field as a count of documents containing any particular word in the query.",
+            "example": 15117
+          },
+          "token": {
+            "type": "string",
+            "description": "A continuation token that must be provided to fetch the next page of results. Present only when more results can be fetched.",
+            "example": "SDKJFHSDKFHWIEFSFSGHEIURYC"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "Contents of this page",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/FullPaper"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BasePaper": {
+        "properties": {
+          "paperId": {
+            "type": "string",
+            "description": "Semantic Scholar\u2019s primary unique identifier for a paper.",
+            "example": "5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "corpusId": {
+            "type": "integer",
+            "description": "Semantic Scholar\u2019s secondary unique identifier for a paper.",
+            "example": 215416146
+          },
+          "externalIds": {
+            "type": "object",
+            "description": "An object that contains the paper\u2019s unique identifiers in external sources. The external sources are limited to: ArXiv, MAG, ACL, PubMed, Medline, PubMedCentral, DBLP, and DOI.",
+            "example": {
+              "MAG": "3015453090",
+              "DBLP": "conf/acl/LoWNKW20",
+              "ACL": "2020.acl-main.447",
+              "DOI": "10.18653/V1/2020.ACL-MAIN.447",
+              "CorpusId": 215416146
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the paper on the Semantic Scholar website.",
+            "example": "https://www.semanticscholar.org/paper/5c5751d45e298cea054f32b392c12c61027d2fe7"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the paper.",
+            "example": "Construction of the Literature Graph in Semantic Scholar"
+          },
+          "abstract": {
+            "type": "string",
+            "description": "The paper's abstract. Note that due to legal reasons, this may be missing even if we display an abstract on the website.",
+            "example": "We describe a deployed scalable system for organizing published scientific literature into a heterogeneous graph to facilitate algorithmic manipulation and discovery."
+          },
+          "venue": {
+            "type": "string",
+            "description": "The name of the paper\u2019s publication venue.",
+            "example": "Annual Meeting of the Association for Computational Linguistics"
+          },
+          "publicationVenue": {
+            "type": "object",
+            "description": "An object that contains the following information about the journal or conference in which this paper was published: id (the venue\u2019s unique ID), name (the venue\u2019s name), type (the type of venue), alternate_names (an array of alternate names for the venue), and url (the venue\u2019s website).",
+            "example": {
+              "id": "1e33b3be-b2ab-46e9-96e8-d4eb4bad6e44",
+              "name": "Annual Meeting of the Association for Computational Linguistics",
+              "type": "conference",
+              "alternate_names": [
+                "Annu Meet Assoc Comput Linguistics",
+                "Meeting of the Association for Computational Linguistics",
+                "ACL",
+                "Meet Assoc Comput Linguistics"
+              ],
+              "url": "https://www.aclweb.org/anthology/venues/acl/"
+            }
+          },
+          "year": {
+            "type": "integer",
+            "description": "The year the paper was published.",
+            "example": 1997
+          },
+          "referenceCount": {
+            "type": "integer",
+            "description": "The total number of papers this paper references.",
+            "example": 59
+          },
+          "citationCount": {
+            "type": "integer",
+            "description": "The total number of papers that references this paper.",
+            "example": 453
+          },
+          "influentialCitationCount": {
+            "type": "integer",
+            "description": "A subset of the citation count, where the cited publication has a significant impact on the citing publication. Determined by Semantic Scholar\u2019s algorithm: https://www.semanticscholar.org/faq#influential-citations.",
+            "example": 90
+          },
+          "isOpenAccess": {
+            "type": "boolean",
+            "description": "Whether the paper is open access. More information here: https://www.openaccess.nl/en/what-is-open-access.",
+            "example": true
+          },
+          "openAccessPdf": {
+            "type": "object",
+            "description": "An object that contains the following parameters: url (a link to the paper\u2019s PDF), status (the type of open access https://en.wikipedia.org/wiki/Open_access#Colour_naming_system), the paper's license, and a legal disclaimer.",
+            "example": {
+              "url": "https://www.aclweb.org/anthology/2020.acl-main.447.pdf",
+              "status": "HYBRID",
+              "license": "CCBY",
+              "disclaimer": "Notice: This snippet is extracted from the open access paper or abstract available at https://aclanthology.org/2020.acl-main.447, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+            }
+          },
+          "fieldsOfStudy": {
+            "type": "array",
+            "description": "A list of the paper\u2019s high-level academic categories from external sources. The possible fields are: Computer Science, Medicine, Chemistry, Biology, Materials Science, Physics, Geology, Psychology, Art, History, Geography, Sociology, Business, Political Science, Economics, Philosophy, Mathematics, Engineering, Environmental Science, Agricultural and Food Sciences, Education, Law, and Linguistics.",
+            "example": ["Computer Science"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "s2FieldsOfStudy": {
+            "type": "array",
+            "description": "An array of objects. Each object contains the following parameters: category (a field of study. The possible fields are the same as in fieldsOfStudy), and source (specifies whether the category was classified by Semantic Scholar or by an external source. More information on how Semantic Scholar classifies papers https://medium.com/ai2-blog/announcing-s2fos-an-open-source-academic-field-of-study-classifier-9d2f641949e5)",
+            "example": [
+              {
+                "category": "Computer Science",
+                "source": "external"
+              },
+              {
+                "category": "Computer Science",
+                "source": "s2-fos-model"
+              },
+              {
+                "category": "Mathematics",
+                "source": "s2-fos-model"
+              }
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "publicationTypes": {
+            "type": "array",
+            "description": "The type of this publication.",
+            "example": ["Journal Article", "Review"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "publicationDate": {
+            "type": "string",
+            "description": "The date when this paper was published, in YYYY-MM-DD format.",
+            "example": "2024-04-29"
+          },
+          "journal": {
+            "type": "object",
+            "description": "An object that contains the following parameters, if available: name (the journal name), volume (the journal\u2019s volume number), and pages (the page number range)",
+            "example": {
+              "volume": "40",
+              "pages": "116 - 135",
+              "name": "IETE Technical Review"
+            }
+          },
+          "citationStyles": {
+            "type": "object",
+            "description": "The BibTex bibliographical citation of the paper.",
+            "example": {
+              "bibtex": "@['JournalArticle', 'Conference']{Ammar2018ConstructionOT,\n author = {Waleed Ammar and Dirk Groeneveld and Chandra Bhagavatula and Iz Beltagy and Miles Crawford and Doug Downey and Jason Dunkelberger and Ahmed Elgohary and Sergey Feldman and Vu A. Ha and Rodney Michael Kinney and Sebastian Kohlmeier and Kyle Lo and Tyler C. Murray and Hsu-Han Ooi and Matthew E. Peters and Joanna L. Power and Sam Skjonsberg and Lucy Lu Wang and Christopher Wilhelm and Zheng Yuan and Madeleine van Zuylen and Oren Etzioni},\n booktitle = {NAACL},\n pages = {84-91},\n title = {Construction of the Literature Graph in Semantic Scholar},\n year = {2018}\n}\n"
+            }
+          },
+          "authors": {
+            "type": "array",
+            "title": "Author Info",
+            "description": "Details about the paper's authors",
+            "items": {
+              "$ref": "#/components/schemas/AuthorInfo"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Citation": {
+        "properties": {
+          "contexts": {
+            "type": "array",
+            "description": "Array of text snippets where the reference to the paper is mentioned.",
+            "example": [
+              "SciBERT (Beltagy et al., 2019) follows the BERT\u2019s masking strategy to pre-train the model from scratch using a scientific corpus composed of papers from Semantic Scholar (Ammar et al., 2018).",
+              "27M articles from the Semantic Scholar dataset (Ammar et al., 2018)."
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "intents": {
+            "type": "array",
+            "description": "Array of citation intents that summarizes how the reference to the paper is mentioned. Possible intents: https://www.semanticscholar.org/faq#citation-intent",
+            "example": ["methodology"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "contextsWithIntent": {
+            "type": "array",
+            "description": "Array of objects that contain both contexts and the intents they are associated with.",
+            "example": [
+              {
+                "context": "SciBERT (Beltagy et al., 2019) follows the BERT\u2019s ...",
+                "intents": ["methodology"]
+              }
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "isInfluential": {
+            "type": "boolean",
+            "description": "Whether the citing paper is highly influential. See more about influential citations: https://www.semanticscholar.org/faq#influential-citations",
+            "example": false
+          },
+          "citingPaper": {
+            "description": "Details about the citing paper",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BasePaper"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "CitationBatch": {
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "description": "Starting position for this batch."
+          },
+          "next": {
+            "type": "integer",
+            "description": "Starting position of the next batch. Absent if no more data exists."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "title": "contents of this batch",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Citation"
+                }
+              ]
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Tldr": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The tldr model version number: https://github.com/allenai/scitldr",
+            "example": "tldr@v2.0.0"
+          },
+          "text": {
+            "type": "string",
+            "description": "The tldr paper summary.",
+            "example": "This paper reduces literature graph construction into familiar NLP tasks, point out research challenges due to differences from standard formulations of these tasks, and report empirical results for each task."
+          }
+        },
+        "type": "object"
+      },
+      "PaperBatch": {
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "649def34f8be52c8b66281af98ae884c09aef38b"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "AuthorInPaper": {
+        "properties": {
+          "authorId": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Semantic Scholar\u2019s unique ID for the author.",
+            "example": "1741101"
+          },
+          "externalIds": {
+            "type": "object",
+            "description": "An object that contains the ORCID/DBLP IDs for the author, if known.",
+            "example": {
+              "DBLP": [123]
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the author on the Semantic Scholar website.",
+            "example": "https://www.semanticscholar.org/author/1741101"
+          },
+          "name": {
+            "type": "string",
+            "title": "This field will be provided if no fields are specified",
+            "description": "Author\u2019s name.",
+            "example": "Oren Etzioni"
+          },
+          "affiliations": {
+            "type": "array",
+            "description": "Array of organizational affiliations for the author.",
+            "example": ["Allen Institute for AI"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "homepage": {
+            "type": "string",
+            "description": "The author\u2019s homepage.",
+            "example": "https://allenai.org/"
+          },
+          "paperCount": {
+            "type": "string",
+            "description": "The author's total publications count.",
+            "example": 10
+          },
+          "citationCount": {
+            "type": "string",
+            "description": "The author's total citations count.",
+            "example": 50
+          },
+          "hIndex": {
+            "type": "string",
+            "description": "The author\u2019s h-index, which is a measure of the productivity and citation impact of the author\u2019s publications: https://www.semanticscholar.org/faq#h-index",
+            "example": 5
+          },
+          "normalizedAffiliations": {
+            "type": "array",
+            "description": "Array of organizational ROR-based normalized affiliations for the author (ROR - Research Organization Registry).",
+            "example": [
+              {
+                "rorId": "https://ror.org/05w520734",
+                "rorDisplayName": "Allen Institute for Artificial Intelligence"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/NormalizedAffiliation"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "PaperMatch": {
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Title Match Paper"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "Error404": {
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Depending on the case, error message may be any of these:\n<ul>\n    <li><code>\"Paper/Author/Object not found\"</code></li>\n    <li><code>\"Paper/Author/Object with id ### not found\"</code></li>\n</ul>",
+            "example": "Requested object not found"
+          }
+        },
+        "type": "object"
+      }
+    }
+  }
+}
