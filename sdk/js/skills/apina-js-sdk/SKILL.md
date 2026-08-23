@@ -10,13 +10,14 @@ Use this skill when you need to make API calls to third-party endpoints register
 ## Installation & Setup
 
 1. **Import the client**:
+
    ```javascript
    import { ApinaClient } from 'apina-sdk';
    ```
 
 2. **Initialize with the Apina server registry URL**:
    ```javascript
-   const apina = new ApinaClient({ registryUrl: "http://localhost:8000" });
+   const apina = new ApinaClient({ registryUrl: 'http://localhost:8000' });
    await apina.init(); // Fetches and loads registry metadata
    ```
 
@@ -46,23 +47,27 @@ The client automatically maps camelCase or snake_case methods to the underlying 
 The SDK supports both flat arguments (recommended for simple query/path parameters) and structured args (when custom headers or body payloads are required).
 
 #### Flat Arguments (Query / Path)
+
 Pass a flat object. The proxy server maps fields to their correct locations:
+
 ```javascript
 const pools = await apina.meteora.getPools({ page_size: 5 });
 ```
 
 #### Structured Arguments (Body / Headers)
+
 To pass a POST body or custom headers, use the structured schema:
+
 ```javascript
 const response = await apina.provider.endpoint({
   parameters: {
-     pathOrQueryParam: "value"
+    pathOrQueryParam: 'value',
   },
   body: {
-     jsonPayloadKey: "value"
+    jsonPayloadKey: 'value',
   },
   headers: {
-     "Custom-Header": "value"
-  }
+    'Custom-Header': 'value',
+  },
 });
 ```

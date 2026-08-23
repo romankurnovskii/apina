@@ -1,6 +1,6 @@
 # Apina Client SDK
 
-The unified, dynamic JavaScript/TypeScript client library for the **Apina** API registry. 
+The unified, dynamic JavaScript/TypeScript client library for the **Apina** API registry.
 
 ## Features
 
@@ -30,7 +30,7 @@ Point the client to your running Apina registry server:
 ```typescript
 import { ApinaClient } from 'apina-sdk';
 
-const apina = new ApinaClient({ registryUrl: "http://localhost:8000" });
+const apina = new ApinaClient({ registryUrl: 'http://localhost:8000' });
 await apina.init(); // Fetches registered providers
 ```
 
@@ -41,7 +41,7 @@ Call endpoints using the dynamic namespace syntax:
 ```typescript
 // 1. Fetch token profiles from DexScreener (GET endpoint)
 const tokenData = await apina.dexscreener.getTokenProfiles({
-  tokenAddress: "0x..."
+  tokenAddress: '0x...',
 });
 
 // 2. Fetch Meteora DLMM pool information
@@ -53,12 +53,12 @@ const pools = await apina.meteora.getDlmmPools({ limit: 10 });
 For full control, or if you prefer an explicit calling signature:
 
 ```typescript
-const data = await apina.call("dexscreener", "get-token-profiles", {
+const data = await apina.call('dexscreener', 'get-token-profiles', {
   parameters: {
-    tokenAddress: "0x..."
+    tokenAddress: '0x...',
   },
   headers: {
-    "Custom-Header": "value"
-  }
+    'Custom-Header': 'value',
+  },
 });
 ```
