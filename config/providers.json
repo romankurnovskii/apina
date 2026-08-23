@@ -54,6 +54,25 @@
           "value": "crypto"
         }
       ]
+    },
+    {
+      "id": "coingecko",
+      "name": "CoinGecko Demo API",
+      "base_url": "https://api.coingecko.com/api/v3",
+      "schema_path": "coingecko/openapi.json",
+      "version": "3.0.0",
+      "documentation": "https://docs.coingecko.com/demo/reference/endpoint-overview",
+      "description": "CoinGecko Demo API for cryptocurrency prices, market data, coin metadata, and historical data",
+      "rate_limit": {
+        "requests": 30,
+        "period": "minute"
+      },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "crypto"
+        }
+      ]
     }
   ]
 }

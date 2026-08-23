@@ -1,0 +1,301 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "arXiv Query API",
+    "description": "Search and retrieve arXiv article metadata via the official Atom-based query API.",
+    "contact": {
+      "name": "arXiv API Support",
+      "url": "https://info.arxiv.org/help/oa/index.html",
+      "email": "help@arxiv.org"
+    },
+    "license": {
+      "name": "Metadata CC0 1.0 (e-prints under individual copyright)",
+      "url": "https://info.arxiv.org/help/api/tou.html"
+    },
+    "termsOfService": "https://info.arxiv.org/help/api/tou.html",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://export.arxiv.org/api",
+      "description": "Official arXiv API server"
+    }
+  ],
+  "paths": {
+    "/query": {
+      "get": {
+        "operationId": "queryArticles",
+        "summary": "Query Articles",
+        "description": "Search and retrieve arXiv article metadata using the Atom-based query API.",
+        "tags": ["Query"],
+        "parameters": [
+          {
+            "name": "search_query",
+            "in": "query",
+            "required": false,
+            "description": "Search expression using field prefixes and boolean operators. Example: `cat:cs.AI AND ti:transformer`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id_list",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated list of arXiv identifiers to retrieve.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "description": "0-based index of the first returned result.",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "description": "Number of results to return. Maximum 2000 per request.",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "description": "Sort field for results.",
+            "schema": {
+              "type": "string",
+              "enum": ["relevance", "lastUpdatedDate", "submittedDate"],
+              "default": "relevance"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "description": "Sort order for results.",
+            "schema": {
+              "type": "string",
+              "enum": ["ascending", "descending"],
+              "default": "descending"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Atom feed of matching articles.",
+            "content": {
+              "application/atom+xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtomFeed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed query or invalid parameters.",
+            "content": {
+              "application/atom+xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorFeed"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AtomFeed": {
+        "type": "object",
+        "description": "Atom 1.0 feed wrapping arXiv search results.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Canonicalized search query string."
+          },
+          "id": {
+            "type": "string",
+            "format": "uri",
+            "description": "Unique identifier for this query."
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Self-referencing GET URL for the query."
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last time the feed contents were updated."
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "Total number of results matching the query."
+          },
+          "startIndex": {
+            "type": "integer",
+            "description": "0-based index of the first result in this page."
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "Number of results returned in this page."
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Article"
+            },
+            "description": "List of matching arXiv articles."
+          }
+        }
+      },
+      "Article": {
+        "type": "object",
+        "description": "A single arXiv article entry from the Atom feed.",
+        "required": ["id", "title", "summary", "authors", "primary_category", "published"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uri",
+            "description": "Canonical abstract URL (http://arxiv.org/abs/{id})."
+          },
+          "arxiv_id": {
+            "type": "string",
+            "description": "Bare arXiv identifier, e.g. 2401.12345.",
+            "pattern": "^[0-9]{4}\\.[0-9]{4,5}(v[0-9]+)?$|^[a-z\\-]+/[0-9]{7}(v[0-9]+)?$"
+          },
+          "title": {
+            "type": "string",
+            "description": "Article title."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Abstract text."
+          },
+          "published": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Submission date of version 1."
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Submission date of the retrieved version."
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "description": "List of article authors in order."
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "All arXiv / ACM / MSC subject classifications attached to the article."
+          },
+          "primary_category": {
+            "type": "string",
+            "description": "Primary arXiv subject classification (e.g. cs.AI, hep-th)."
+          },
+          "comment": {
+            "type": "string",
+            "description": "Author-supplied comments, if present."
+          },
+          "journal_ref": {
+            "type": "string",
+            "description": "Bibliographic reference for an associated published version."
+          },
+          "doi": {
+            "type": "string",
+            "description": "DOI for the version of record, if known."
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleLink"
+            },
+            "description": "Related links (abstract page, PDF, DOI)."
+          },
+          "license": {
+            "type": "string",
+            "format": "uri",
+            "description": "Declared license URL for the e-print."
+          }
+        }
+      },
+      "Author": {
+        "type": "object",
+        "description": "An author of an arXiv article.",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Author name."
+          },
+          "affiliation": {
+            "type": "string",
+            "description": "Author affiliation, if supplied."
+          }
+        }
+      },
+      "ArticleLink": {
+        "type": "object",
+        "description": "A link associated with an arXiv article.",
+        "required": ["href", "rel"],
+        "properties": {
+          "href": {
+            "type": "string",
+            "format": "uri",
+            "description": "Target URL."
+          },
+          "rel": {
+            "type": "string",
+            "description": "Link relation type (alternate, related)."
+          },
+          "type": {
+            "type": "string",
+            "description": "MIME type of the target resource."
+          },
+          "title": {
+            "type": "string",
+            "description": "Link title, if any (e.g. pdf, doi)."
+          }
+        }
+      },
+      "ErrorFeed": {
+        "type": "object",
+        "description": "Atom feed representing an error response.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Error"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Error message."
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to a more detailed error explanation."
+          }
+        }
+      }
+    }
+  }
+}
