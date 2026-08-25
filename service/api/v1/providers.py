@@ -174,9 +174,9 @@ def call_endpoint(
     provider_id: str,
     endpoint_id: str,
     payload: Annotated[
-        dict[str, Any] | None,
+        dict[str, Any],
         Body(default_factory=lambda: {"parameters": {}, "body": {}, "headers": {}}),
-    ] = None,
+    ],
 ):
     """Proxy an endpoint call to the upstream provider.
 
