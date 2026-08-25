@@ -13,7 +13,7 @@ Dependencies: json, pathlib
 
 import json
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any
 from models.endpoint import EndpointSchema, Parameter
 
 
@@ -27,7 +27,7 @@ class OpenAPIParser:
             schema_path: Path to the OpenAPI schema JSON file.
         """
         self.schema_path = schema_path
-        self.schema: Dict[str, Any] = {}
+        self.schema: dict[str, Any] = {}
         self.load_schema()
 
     def load_schema(self):
@@ -37,7 +37,7 @@ class OpenAPIParser:
         with open(self.schema_path, "r") as f:
             self.schema = json.load(f)
 
-    def _resolve_refs(self, node: Any, seen: Optional[set] = None) -> Any:
+    def _resolve_refs(self, node: Any, seen: set | None = None) -> Any:
         """Resolve local OpenAPI $ref values recursively.
 
         Args:
@@ -91,7 +91,7 @@ class OpenAPIParser:
                 }
         return current
 
-    def get_endpoints(self, base_url: str) -> List[EndpointSchema]:
+    def get_endpoints(self, base_url: str) -> list[EndpointSchema]:
         """Convert the parsed schema into endpoint models.
 
         Args:
