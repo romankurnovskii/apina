@@ -9,7 +9,7 @@
       "schema_path": "dexscreener/openapi.json",
       "version": "1.0.0",
       "documentation": "https://docs.dexscreener.com/api/reference",
-      "description": "DEX Screener API for latest token profiles, pairs, and market data",
+      "description": "Real-time decentralized exchange (DEX) data across 90+ blockchains. Use this API to: (1) Search for token profiles and get latest token information, (2) Retrieve recently updated token profiles, (3) Get active liquidity pools and trading pairs, (4) Access token prices, volume, and market metrics, (5) Monitor community takeovers and new token launches. Best for tracking DeFi opportunities, monitoring new listings, and analyzing DEX liquidity across chains like Ethereum, Solana, BSC, and Polygon.",
       "rate_limit": {
         "requests": 60,
         "period": "minute"
@@ -28,7 +28,7 @@
       "schema_path": "meteora/openapi.json",
       "version": "0.1.0",
       "documentation": "https://docs.meteora.ag",
-      "description": "Meteora DLMM API for Dynamic Liquidity Market Maker pools and analytics",
+      "description": "Meteora Dynamic Liquidity Market Maker (DLMM) API for Solana DeFi. Use this API to: (1) Browse and search liquidity pools with advanced filtering by TVL, volume, APR, and bin step, (2) Get detailed pool analytics including fee metrics, APY, and farm rewards, (3) Monitor pool performance over different time windows (5m to 24h), (4) Query specific pools by address or token pair. Essential for Solana DeFi strategies, yield farming analysis, and liquidity provider (LP) position management on Meteora's concentrated liquidity platform.",
       "metadata": [
         {
           "key": "category",
@@ -43,7 +43,7 @@
       "schema_path": "defillama/openapi.json",
       "version": "1.0.0",
       "documentation": "https://api-docs.defillama.com/",
-      "description": "DefiLlama Free API for DeFi analytics \u2014 TVL, token prices, stablecoins, yields, DEX volumes, and fees data",
+      "description": "Comprehensive DeFi analytics platform covering 300+ protocols across 100+ chains. Use this API to: (1) Get current and historical Total Value Locked (TVL) for any DeFi protocol, (2) Retrieve decentralized exchange (DEX) volumes and fees, (3) Access yield farming data including APY and yields across protocols, (4) Get cryptocurrency prices, stablecoin data, and token metrics, (5) Query chain-level DeFi statistics and comparisons. Primary source for DeFi research, protocol comparisons, and tracking TVL changes. Free tier allows 300 requests per minute.",
       "rate_limit": {
         "requests": 300,
         "period": "minute"
@@ -62,7 +62,7 @@
       "schema_path": "coingecko/openapi.json",
       "version": "3.0.0",
       "documentation": "https://docs.coingecko.com/demo/reference/endpoint-overview",
-      "description": "CoinGecko Demo API for cryptocurrency prices, market data, coin metadata, and historical data",
+      "description": "Cryptocurrency market data and price tracking API. Use this API to: (1) Get current and historical cryptocurrency prices in various fiat currencies (USD, EUR, BTC, ETH), (2) Retrieve detailed coin metadata including market cap, 24h volume, circulating supply, and price changes (1h, 24h, 7d, 30d), (3) Access trending coins, top gainers/losers, and market categories, (4) Get OHLC (Open/High/Low/Close) candlestick data for technical analysis, (5) Query coin data by contract address across multiple chains (Ethereum, BSC, Polygon, etc.). Best for crypto portfolio tracking, market analysis, and price alerts. Note: This is the free demo API with rate limits.",
       "rate_limit": {
         "requests": 30,
         "period": "minute"
@@ -81,7 +81,7 @@
       "schema_path": "semantic-scholar/openapi.json",
       "version": "1.0.0",
       "documentation": "https://api.semanticscholar.org/product/api",
-      "description": "Semantic Scholar Academic Graph API for paper search, batch lookup, citations, references, and author data",
+      "description": "Academic paper search and citation analysis powered by AI. Use this API to: (1) Search for papers by title, author, or keyword across 200M+ publications, (2) Retrieve paper details including abstracts, citations, references, and publication venues, (3) Look up author profiles with citation counts, h-index, and publication history, (4) Batch retrieve multiple papers or authors by ID for efficient data collection, (5) Access citation networks and find related papers based on content similarity. Essential for academic research, literature reviews, citation analysis, and discovering influential papers in computer science, biomedicine, and other fields. Free tier: 100 requests/minute.",
       "rate_limit": {
         "requests": 100,
         "period": "minute"
@@ -100,11 +100,26 @@
       "schema_path": "crossref/openapi.json",
       "version": "3.32.0",
       "documentation": "https://api.crossref.org/learning/",
-      "description": "Crossref REST API for searching and retrieving scholarly works, DOIs, members, funders, journals, and publication metadata",
+      "description": "Scholarly literature metadata from Crossref's database of 150M+ DOIs. Use this API to: (1) Search for academic works by title, author, DOI, or publication date, (2) Retrieve publication metadata including authors, affiliations, abstracts, and references, (3) Look up DOIs to verify citations and get formatted citations (APA, MLA, Chicago, etc.), (4) Query journals, conferences, and publishers for publication policies and metadata, (5) Access funders, grants, and ORCID author identifiers. Critical for academic citations, DOI resolution, bibliographic data extraction, and research metadata management. Free tier: 50 requests/second.",
       "rate_limit": {
         "requests": 50,
         "period": "second"
       },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "research"
+        }
+      ]
+    },
+    {
+      "id": "arxiv",
+      "name": "arXiv Query API",
+      "base_url": "https://export.arxiv.org/api",
+      "schema_path": "arxiv/openapi.json",
+      "version": "1.0.0",
+      "documentation": "https://info.arxiv.org/help/oa/index.html",
+      "description": "Open-access scholarly preprint repository focused on physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, and related fields. Use this API to: (1) Search for preprints and published papers by keyword, title, or author, (2) Retrieve paper metadata including abstracts, authors, categories, and publication dates, (3) Get Atom feed format for integration with RSS readers and research tools, (4) Query specific papers by arXiv ID (e.g., 2401.12345), (5) Filter by subject categories (cs.AI, math.ST, physics.hep-ph, etc.). Best for accessing cutting-edge research before peer review, tracking recent submissions in specific fields, and building academic literature databases. No rate limiting but requires respectful use with appropriate User-Agent headers.",
       "metadata": [
         {
           "key": "category",
