@@ -174,9 +174,9 @@ def call_endpoint(
     provider_id: str,
     endpoint_id: str,
     payload: Annotated[
-        dict[str, Any],
+        dict[str, Any] | None,
         Body(default_factory=lambda: {"parameters": {}, "body": {}, "headers": {}}),
-    ] = {"parameters": {}, "body": {}, "headers": {}},
+    ] = None,
 ):
     """Proxy an endpoint call to the upstream provider.
 
@@ -215,6 +215,7 @@ def call_endpoint(
         raise HTTPException(status_code=404, detail="Endpoint not found")
 
     # Construct request inputs
+    payload = payload or {}
     user_params = payload.get("parameters") or {}
     user_body = payload.get("body")
     user_headers = payload.get("headers") or {}
