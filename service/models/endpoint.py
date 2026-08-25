@@ -10,17 +10,18 @@ Features:
 Dependencies: pydantic
 """
 
+from typing import Any
+
 from pydantic import BaseModel
-from typing import List, Dict, Optional, Any
 
 
 class Parameter(BaseModel):
     """Structured metadata for a single OpenAPI parameter."""
 
+    description: str | None = None
+    required: bool
     name: str
     type: str
-    required: bool
-    description: Optional[str] = None
 
 
 class EndpointSchema(BaseModel):
@@ -30,9 +31,9 @@ class EndpointSchema(BaseModel):
     path: str
     method: str
     full_url: str
-    summary: Optional[str] = None
-    description: Optional[str] = None
-    parameters: Dict[str, List[Parameter]]
-    request_body: Optional[Dict[str, Any]] = None
-    responses: Dict[str, Any]
-    tags: Optional[List[str]] = None
+    summary: str | None = None
+    description: str | None = None
+    parameters: dict[str, list["Parameter"]]
+    request_body: dict[str, Any] | None = None
+    responses: dict[str, Any]
+    tags: list[str] | None = None

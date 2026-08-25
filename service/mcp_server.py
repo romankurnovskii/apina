@@ -16,19 +16,20 @@ Dependencies: mcp.server, fastapi
 Side Effects: Starts a stdio-based MCP server for agent clients.
 """
 
+import logging
 import os
 import sys
 
 # Add parent dir to path so we can import core and utils
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from typing import Optional
-
 from mcp.server import MCPServer
 
 from core.config import settings
 from core.provider_registry import provider_registry
 from utils.openapi_parser import OpenAPIParser
+
+logger = logging.getLogger(__name__)
 
 # Initialize MCP server
 mcp = MCPServer(
@@ -37,7 +38,7 @@ mcp = MCPServer(
 
 
 @mcp.tool()
-def search_api(query: str, provider_id: Optional[str] = None) -> str:
+def search_api(query: str, provider_id: str | None = None) -> str:
     """Search for API endpoints across registered providers.
 
     Args:
@@ -60,7 +61,8 @@ def search_api(query: str, provider_id: Optional[str] = None) -> str:
         try:
             parser = OpenAPIParser(schema_path)
             endpoints = parser.get_endpoints(p.base_url)
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to parse schema for provider %s: %s", p.id, e)
             continue
 
         for ep in endpoints:
