@@ -1,7 +1,7 @@
 ---
 name: apina-api-registry
 description: Discover, retrieve, and inspect OpenAPI schemas for registered API providers (like DEX Screener, Meteora DLMM, etc.). You MUST use this skill whenever you are asked to integrate, debug, or query any external REST API. Never guess API endpoint paths, base URLs, or query parameters; always query the Apina service first using MCP or REST to fetch the exact schema definition.
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Apina API Registry Skill
