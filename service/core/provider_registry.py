@@ -1,15 +1,15 @@
 """
 provider_registry.py
 
-Maintains the in-memory registry of providers loaded from the configuration store.
+Maintains the in-memory registry of providers loaded from GitHub (single source of truth).
 
 Features:
-    - Syncs provider configuration and schemas from GitHub when available.
-    - Loads providers from the local configuration file as a fallback.
+    - Fetches provider configuration and schemas from GitHub on startup.
+    - Caches fetched data locally for performance.
     - Exposes provider lookup helpers for the REST and MCP layers.
 
 Dependencies: requests, pydantic
-Side Effects: Reads and writes local provider configuration and schema files.
+Side Effects: Reads and writes local provider configuration and schema files (cache only).
 """
 
 import json
@@ -23,88 +23,97 @@ from models.provider import Provider
 
 logger = logging.getLogger("apina.registry")
 
+GITHUB_REPO = "romankurnovskii/apina"
+GITHUB_BRANCH = "main"
+RAW_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/{GITHUB_BRANCH}"
+
 
 class ProviderRegistry:
-    """Loads and serves provider metadata for the Apina service."""
+    """Loads and serves provider metadata from GitHub (canonical source)."""
 
     def __init__(self, config_dir: Path, schemas_dir: Path):
-        """Initialize the registry and bootstrap provider data.
+        """Initialize the registry and bootstrap provider data from GitHub.
 
         Args:
-            config_dir: Directory that contains providers.json.
-            schemas_dir: Directory that stores OpenAPI schemas.
+            config_dir: Directory to cache providers.json.
+            schemas_dir: Directory to cache OpenAPI schemas.
         """
         self.config_dir = config_dir
         self.schemas_dir = schemas_dir
         self.providers: dict[str, Provider] = {}
-        self.sync_from_github()
-        self.load_providers()
+        self.load_from_github()
 
-    def sync_from_github(self):
-        """Attempt to refresh provider definitions from the public GitHub repository."""
-        github_repo = "romankurnovskii/apina"
-        github_branch = "main"
-        raw_url_base = (
-            f"https://raw.githubusercontent.com/{github_repo}/{github_branch}"
-        )
-        providers_url = f"{raw_url_base}/config/providers.json"
+    def load_from_github(self):
+        """Fetch provider definitions from GitHub (single source of truth).
 
-        # Support GITHUB_TOKEN for private repositories
+        Raises:
+            RuntimeError: If GitHub cannot be reached or returns invalid data.
+        """
+        providers_url = f"{RAW_URL_BASE}/config/providers.json"
+
+        # Support GITHUB_TOKEN for private repositories or rate limit increases
         github_token = os.environ.get("GITHUB_TOKEN")
-        headers = {}
-        if github_token:
-            headers["Authorization"] = f"token {github_token}"
+        headers = {"Authorization": f"token {github_token}"} if github_token else {}
 
-        logger.info(f"Syncing configuration from {providers_url}...")
+        logger.info(f"Loading providers from GitHub: {providers_url}")
         try:
-            r = requests.get(providers_url, headers=headers, timeout=5)
-            if r.status_code == 200:
-                data = r.json()
-                if "providers" in data:
-                    self.config_dir.mkdir(parents=True, exist_ok=True)
-                    providers_file = self.config_dir / "providers.json"
-                    with open(providers_file, "w") as f:
-                        json.dump(data, f, indent=2)
-                    logger.info("Successfully synced providers.json from GitHub")
+            r = requests.get(providers_url, headers=headers, timeout=10)
+            r.raise_for_status()
+            data = r.json()
 
-                    # Sync schema files for each provider
-                    for p in data.get("providers", []):
-                        schema_path = p.get("schema_path")
-                        if schema_path:
-                            schema_url = f"{raw_url_base}/schemas/{schema_path}"
-                            logger.info(f"Syncing schema from {schema_url}...")
-                            sr = requests.get(schema_url, headers=headers, timeout=5)
-                            if sr.status_code == 200:
-                                local_schema_file = self.schemas_dir / schema_path
-                                local_schema_file.parent.mkdir(
-                                    parents=True, exist_ok=True
-                                )
-                                with open(local_schema_file, "w") as sf:
-                                    sf.write(sr.text)
-                                logger.info(
-                                    f"Successfully synced schema {schema_path} from GitHub"
-                                )
-                            else:
-                                logger.warning(
-                                    f"Failed to sync schema {schema_path} from GitHub: {sr.status_code}"
-                                )
-                else:
-                    logger.warning(
-                        "Invalid providers.json structure fetched from GitHub"
-                    )
-            else:
-                logger.warning(
-                    f"Failed to fetch providers.json from GitHub: {r.status_code}"
+            if "providers" not in data:
+                raise ValueError(
+                    "Invalid providers.json structure: missing 'providers' key"
                 )
-        except requests.RequestException as e:
-            logger.warning(
-                f"Network error during GitHub sync, falling back to local files: {e}"
+
+            # Cache providers.json locally
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+            providers_file = self.config_dir / "providers.json"
+            with open(providers_file, "w") as f:
+                json.dump(data, f, indent=2)
+            logger.info("Cached providers.json locally")
+
+            # Fetch and cache schema files for each provider
+            for p in data.get("providers", []):
+                schema_path = p.get("schema_path")
+                if schema_path:
+                    schema_url = f"{RAW_URL_BASE}/schemas/{schema_path}"
+                    try:
+                        sr = requests.get(schema_url, headers=headers, timeout=10)
+                        sr.raise_for_status()
+
+                        local_schema_file = self.schemas_dir / schema_path
+                        local_schema_file.parent.mkdir(parents=True, exist_ok=True)
+                        with open(local_schema_file, "w") as sf:
+                            sf.write(sr.text)
+                        logger.info(f"Cached schema: {schema_path}")
+                    except requests.RequestException as e:
+                        logger.warning(
+                            f"Failed to fetch schema {schema_path} from GitHub: {e}"
+                        )
+
+            # Load into memory
+            self.load_providers()
+            logger.info(
+                f"Successfully loaded {len(self.providers)} providers from GitHub"
             )
 
+        except requests.RequestException as e:
+            logger.critical(f"Failed to fetch providers from GitHub: {e}")
+            raise RuntimeError(
+                "Cannot start service: GitHub configuration unavailable"
+            ) from e
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.critical(f"Invalid configuration from GitHub: {e}")
+            raise RuntimeError(
+                "Cannot start service: Invalid GitHub configuration"
+            ) from e
+
     def load_providers(self):
-        """Load provider definitions from the local providers.json file."""
+        """Load provider definitions from the cached local providers.json file."""
         providers_file = self.config_dir / "providers.json"
         if not providers_file.exists():
+            logger.warning("No cached providers.json found")
             return
         with open(providers_file, "r") as f:
             data = json.load(f)
@@ -132,4 +141,5 @@ class ProviderRegistry:
         return self.providers.get(provider_id)
 
 
+# Bootstrap the registry on module load
 provider_registry = ProviderRegistry(settings.config_dir, settings.schemas_dir)
