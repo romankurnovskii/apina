@@ -12,7 +12,7 @@ Dependencies: fastapi, requests
 Side Effects: Performs outbound HTTP requests when calling registered endpoints.
 """
 
-from typing import Any
+from typing import Annotated, Any
 
 import requests
 from core.config import settings
@@ -173,9 +173,10 @@ def get_endpoint(provider_id: str, endpoint_id: str):
 def call_endpoint(
     provider_id: str,
     endpoint_id: str,
-    payload: dict[str, Any] = Body(
-        default_factory=lambda: {"parameters": {}, "body": {}, "headers": {}}
-    ),
+    payload: Annotated[
+        dict[str, Any],
+        Body(default_factory=lambda: {"parameters": {}, "body": {}, "headers": {}}),
+    ] = {"parameters": {}, "body": {}, "headers": {}},
 ):
     """Proxy an endpoint call to the upstream provider.
 
