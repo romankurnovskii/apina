@@ -174,7 +174,7 @@ def call_endpoint(
     provider_id: str,
     endpoint_id: str,
     payload: dict[str, Any] = Body(
-        default={"parameters": {}, "body": {}, "headers": {}}
+        default_factory=lambda: {"parameters": {}, "body": {}, "headers": {}}
     ),
 ):
     """Proxy an endpoint call to the upstream provider.
@@ -279,6 +279,4 @@ def call_endpoint(
             media_type=resp.headers.get("Content-Type", "application/json"),
         )
     except requests.RequestException as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to proxy request: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to proxy request: {e!s}")
