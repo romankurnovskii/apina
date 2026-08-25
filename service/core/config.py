@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     """Application configuration container for the Apina service."""
 
     app_name: str = "API-Aware"
-    app_version: str = "0.1.0"
+    app_version: str = "1.1.0"
     schemas_dir: Path = BASE_DIR / "schemas"
     config_dir: Path = BASE_DIR / "config"
     cors_origins: list[str] = ["*"]

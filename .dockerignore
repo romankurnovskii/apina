@@ -1,0 +1,15 @@
+.git
+.github
+.gitignore
+.husky
+.memory-bank
+node_modules
+.venv
+.ruff_cache
+tests
+schemas
+.dev
+*.md
+!README.md
+docker-compose.yml
+Dockerfile
