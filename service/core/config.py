@@ -12,8 +12,9 @@ Dependencies: pydantic_settings
 Side Effects: Reads environment variables from the local .env file.
 """
 
-from pydantic_settings import BaseSettings
 from pathlib import Path
+
+from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 

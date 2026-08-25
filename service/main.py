@@ -16,10 +16,10 @@ Dependencies: fastapi
 Side Effects: Starts the FastAPI application and serves HTTP requests.
 """
 
+from api.v1.providers import router as providers_router
+from core.config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.config import settings
-from api.v1.providers import router as providers_router
 
 app = FastAPI(
     title=settings.app_name,

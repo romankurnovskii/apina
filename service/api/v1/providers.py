@@ -12,18 +12,19 @@ Dependencies: fastapi, requests
 Side Effects: Performs outbound HTTP requests when calling registered endpoints.
 """
 
-from fastapi import APIRouter, HTTPException, Body, Response
-from typing import Optional, Dict, Any
+from typing import Any
+
 import requests
-from core.provider_registry import provider_registry
 from core.config import settings
-from utils.openapi_parser import OpenAPIParser
+from core.provider_registry import provider_registry
+from fastapi import APIRouter, Body, HTTPException, Response
 from models.endpoint import EndpointSchema
+from utils.openapi_parser import OpenAPIParser
 
 router = APIRouter()
 
 
-@router.get("", response_model=Dict[str, Any])
+@router.get("", response_model=dict[str, Any])
 def list_providers():
     """List all registered providers and their endpoint counts.
 
@@ -72,12 +73,12 @@ def get_provider(provider_id: str):
     return p
 
 
-@router.get("/{provider_id}/endpoints", response_model=Dict[str, Any])
+@router.get("/{provider_id}/endpoints", response_model=dict[str, Any])
 def list_endpoints(
     provider_id: str,
-    tag: Optional[str] = None,
-    method: Optional[str] = None,
-    search: Optional[str] = None,
+    tag: str | None = None,
+    method: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 100,
 ):
@@ -172,7 +173,7 @@ def get_endpoint(provider_id: str, endpoint_id: str):
 def call_endpoint(
     provider_id: str,
     endpoint_id: str,
-    payload: Dict[str, Any] = Body(
+    payload: dict[str, Any] = Body(
         default={"parameters": {}, "body": {}, "headers": {}}
     ),
 ):
@@ -272,13 +273,12 @@ def call_endpoint(
             req_kwargs["json"] = user_body
 
         resp = requests.request(**req_kwargs)
-
         return Response(
             content=resp.text,
             status_code=resp.status_code,
             media_type=resp.headers.get("Content-Type", "application/json"),
         )
-    except Exception as e:
+    except requests.RequestException as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to proxy request: {str(e)}"
         )

@@ -23,10 +23,9 @@ import sys
 # Add parent dir to path so we can import core and utils
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mcp.server import MCPServer
-
 from core.config import settings
 from core.provider_registry import provider_registry
+from mcp.server import MCPServer
 from utils.openapi_parser import OpenAPIParser
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ def search_api(query: str, provider_id: str | None = None) -> str:
         try:
             parser = OpenAPIParser(schema_path)
             endpoints = parser.get_endpoints(p.base_url)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("Failed to parse schema for provider %s: %s", p.id, e)
             continue
 

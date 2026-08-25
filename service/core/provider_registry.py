@@ -16,10 +16,10 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Dict
+
 import requests
-from models.provider import Provider
 from core.config import settings
+from models.provider import Provider
 
 logger = logging.getLogger("apina.registry")
 
@@ -36,7 +36,7 @@ class ProviderRegistry:
         """
         self.config_dir = config_dir
         self.schemas_dir = schemas_dir
-        self.providers: Dict[str, Provider] = {}
+        self.providers: dict[str, Provider] = {}
         self.sync_from_github()
         self.load_providers()
 
@@ -96,7 +96,7 @@ class ProviderRegistry:
                 logger.warning(
                     f"Failed to fetch providers.json from GitHub: {r.status_code}"
                 )
-        except Exception as e:
+        except requests.RequestException as e:
             logger.warning(
                 f"Network error during GitHub sync, falling back to local files: {e}"
             )
@@ -112,7 +112,7 @@ class ProviderRegistry:
                 provider = Provider(**item)
                 self.providers[provider.id] = provider
 
-    def get_all(self) -> List[Provider]:
+    def get_all(self) -> list[Provider]:
         """Return every registered provider.
 
         Returns:
@@ -120,7 +120,7 @@ class ProviderRegistry:
         """
         return list(self.providers.values())
 
-    def get_by_id(self, provider_id: str) -> Optional[Provider]:
+    def get_by_id(self, provider_id: str) -> Provider | None:
         """Return a provider by identifier if it exists.
 
         Args:
