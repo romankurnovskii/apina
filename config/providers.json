@@ -126,6 +126,30 @@
           "value": "research"
         }
       ]
+    },
+    {
+      "id": "finnhub",
+      "name": "Finnhub Stock API",
+      "base_url": "https://finnhub.io/api/v1",
+      "schema_path": "finnhub/openapi.json",
+      "version": "1.0.0",
+      "documentation": "https://docs.finnhub.io/docs/api",
+      "description": "Free realtime stock, forex, and cryptocurrency API with company fundamentals, economic data, and alternative data. Use this API to: (1) List stock symbols by exchange with filtering by MIC, security type, and currency, (2) Search symbols by name, ISIN, or CUSIP, (3) Get real-time quotes, price targets, and analyst recommendations, (4) Access company profiles, financials, insider transactions, and ownership data, (5) Retrieve market news, press releases, earnings calendars, and ETF holdings. Essential for equity research, portfolio tracking, and building financial applications. Free tier requires an API key with rate limits based on plan.",
+      "authentication": {
+        "type": "api-key",
+        "header_name": "token",
+        "in": "query"
+      },
+      "rate_limit": {
+        "requests": 30,
+        "period": "second"
+      },
+      "metadata": [
+        {
+          "key": "category",
+          "value": "finance"
+        }
+      ]
     }
   ]
 }
