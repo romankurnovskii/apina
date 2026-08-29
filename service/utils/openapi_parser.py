@@ -161,7 +161,7 @@ class OpenAPIParser:
                     if param_in in parameters_data:
                         parameters_data[param_in].append(parameter)
 
-                responses = resolved_method_item.get("responses", {})
+                responses = resolved_method_item.get("responses") or {}
 
                 # Parse request body schema if present
                 request_body_schema = None
